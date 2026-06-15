@@ -1,57 +1,64 @@
-'use server'
+"use server"
 
-import { auth } from '@/auth'
-import { db } from '@/lib/db'
-import { revalidatePath } from 'next/cache'
+import { auth } from "@/auth"
+import { db } from "@/lib/db"
+import { revalidatePath } from "next/cache"
+import { classSchema } from "@/lib/validations"
 
 export async function getClasses() {
-	const session = await auth()
-	if (!session?.user?.id) throw new Error('Unauthorized')
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
 
-	return db.class.findMany({
-		where: { teacherId: session.user.id },
-		include: { _count: { select: { students: true } } },
-		orderBy: { createdAt: 'desc' },
-	})
+  return db.class.findMany({
+    where: { teacherId: session.user.id },
+    include: { _count: { select: { students: true } } },
+    orderBy: { createdAt: "desc" },
+  })
 }
 
 export async function createClass(name: string) {
-	const session = await auth()
-	if (!session?.user?.id) throw new Error('Unauthorized')
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
 
-	if (!name.trim()) throw new Error('Class name is required')
+  const parsed = classSchema.safeParse({ name })
+  if (!parsed.success) {
+    throw new Error(parsed.error.errors[0].message)
+  }
 
-	await db.class.create({
-		data: {
-			name: name.trim(),
-			teacherId: session.user.id,
-		},
-	})
+  await db.class.create({
+    data: {
+      name: parsed.data.name,
+      teacherId: session.user.id,
+    },
+  })
 
-	revalidatePath('/classes')
+  revalidatePath("/classes")
 }
 
 export async function updateClass(id: string, name: string) {
-	const session = await auth()
-	if (!session?.user?.id) throw new Error('Unauthorized')
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
 
-	if (!name.trim()) throw new Error('Class name is required')
+  const parsed = classSchema.safeParse({ name })
+  if (!parsed.success) {
+    throw new Error(parsed.error.errors[0].message)
+  }
 
-	await db.class.update({
-		where: { id, teacherId: session.user.id },
-		data: { name: name.trim() },
-	})
+  await db.class.update({
+    where: { id, teacherId: session.user.id },
+    data: { name: parsed.data.name },
+  })
 
-	revalidatePath('/classes')
+  revalidatePath("/classes")
 }
 
 export async function deleteClass(id: string) {
-	const session = await auth()
-	if (!session?.user?.id) throw new Error('Unauthorized')
+  const session = await auth()
+  if (!session?.user?.id) throw new Error("Unauthorized")
 
-	await db.class.delete({
-		where: { id, teacherId: session.user.id },
-	})
+  await db.class.delete({
+    where: { id, teacherId: session.user.id },
+  })
 
-	revalidatePath('/classes')
+  revalidatePath("/classes")
 }

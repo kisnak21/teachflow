@@ -3,6 +3,7 @@
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
+import { lessonPlanSchema } from "@/lib/validations"
 
 export async function getLessonPlans() {
   const session = await auth()
@@ -27,19 +28,20 @@ export async function createLessonPlan(data: {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
 
-  if (!data.title.trim()) throw new Error("Title is required")
-  if (!data.subject.trim()) throw new Error("Subject is required")
-  if (!data.classId) throw new Error("Class is required")
+  const parsed = lessonPlanSchema.safeParse(data)
+  if (!parsed.success) {
+    throw new Error(parsed.error.errors[0].message)
+  }
 
   await db.lessonPlan.create({
     data: {
-      title: data.title.trim(),
-      subject: data.subject.trim(),
-      objectives: data.objectives.trim(),
-      activities: data.activities.trim(),
-      assessment: data.assessment.trim(),
-      notes: data.notes.trim(),
-      classId: data.classId,
+      title: parsed.data.title,
+      subject: parsed.data.subject,
+      objectives: parsed.data.objectives ?? "",
+      activities: parsed.data.activities ?? "",
+      assessment: parsed.data.assessment ?? "",
+      notes: parsed.data.notes ?? "",
+      classId: parsed.data.classId,
       teacherId: session.user.id,
     },
   })
@@ -62,16 +64,21 @@ export async function updateLessonPlan(
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
 
+  const parsed = lessonPlanSchema.safeParse(data)
+  if (!parsed.success) {
+    throw new Error(parsed.error.errors[0].message)
+  }
+
   await db.lessonPlan.update({
     where: { id, teacherId: session.user.id },
     data: {
-      title: data.title.trim(),
-      subject: data.subject.trim(),
-      objectives: data.objectives.trim(),
-      activities: data.activities.trim(),
-      assessment: data.assessment.trim(),
-      notes: data.notes.trim(),
-      classId: data.classId,
+      title: parsed.data.title,
+      subject: parsed.data.subject,
+      objectives: parsed.data.objectives ?? "",
+      activities: parsed.data.activities ?? "",
+      assessment: parsed.data.assessment ?? "",
+      notes: parsed.data.notes ?? "",
+      classId: parsed.data.classId,
     },
   })
 

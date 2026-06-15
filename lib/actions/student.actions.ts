@@ -3,6 +3,7 @@
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
+import { studentSchema } from "@/lib/validations"
 
 export async function getStudents(classId?: string) {
   const session = await auth()
@@ -26,15 +27,16 @@ export async function createStudent(data: {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
 
-  if (!data.name.trim()) throw new Error("Student name is required")
-  if (!data.studentNumber.trim()) throw new Error("Student number is required")
-  if (!data.classId) throw new Error("Class is required")
+  const parsed = studentSchema.safeParse(data)
+  if (!parsed.success) {
+    throw new Error(parsed.error.errors[0].message)
+  }
 
   await db.student.create({
     data: {
-      name: data.name.trim(),
-      studentNumber: data.studentNumber.trim(),
-      classId: data.classId,
+      name: parsed.data.name,
+      studentNumber: parsed.data.studentNumber,
+      classId: parsed.data.classId,
     },
   })
 
@@ -52,12 +54,17 @@ export async function updateStudent(
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
 
+  const parsed = studentSchema.safeParse(data)
+  if (!parsed.success) {
+    throw new Error(parsed.error.errors[0].message)
+  }
+
   await db.student.update({
     where: { id },
     data: {
-      name: data.name.trim(),
-      studentNumber: data.studentNumber.trim(),
-      classId: data.classId,
+      name: parsed.data.name,
+      studentNumber: parsed.data.studentNumber,
+      classId: parsed.data.classId,
     },
   })
 

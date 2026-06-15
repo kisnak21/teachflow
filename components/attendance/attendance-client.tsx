@@ -13,6 +13,7 @@ import {
 import { getAttendance, saveAttendance } from "@/lib/actions/attendance.actions"
 import { AttendanceStatus } from "@prisma/client"
 import { getStudents } from "@/lib/actions/student.actions"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface Props {
   classes: { id: string; name: string }[]
@@ -25,10 +26,23 @@ interface StudentAttendance {
   status: AttendanceStatus
 }
 
+const statusOptions = [
+  { value: AttendanceStatus.PRESENT, label: "Present" },
+  { value: AttendanceStatus.ABSENT, label: "Absent" },
+  { value: AttendanceStatus.LATE, label: "Late" },
+]
+
+const statusColor = {
+  PRESENT: "text-green-600",
+  ABSENT: "text-red-600",
+  LATE: "text-yellow-600",
+}
+
 export function AttendanceClient({ classes }: Props) {
   const [classId, setClassId] = useState("")
   const [date, setDate] = useState(new Date().toISOString().split("T")[0])
   const [records, setRecords] = useState<StudentAttendance[]>([])
+  const [selected, setSelected] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -37,6 +51,7 @@ export function AttendanceClient({ classes }: Props) {
     if (!classId || !date) return
     setLoading(true)
     setSaved(false)
+    setSelected(new Set())
 
     const [students, existing] = await Promise.all([
       getStudents(classId),
@@ -80,23 +95,42 @@ export function AttendanceClient({ classes }: Props) {
     )
   }
 
-  const statusOptions = [
-    { value: AttendanceStatus.PRESENT, label: "Present" },
-    { value: AttendanceStatus.ABSENT, label: "Absent" },
-    { value: AttendanceStatus.LATE, label: "Late" },
-  ]
-
-  const statusColor = {
-    PRESENT: "text-green-600",
-    ABSENT: "text-red-600",
-    LATE: "text-yellow-600",
+  function toggleSelect(studentId: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(studentId)) next.delete(studentId)
+      else next.add(studentId)
+      return next
+    })
   }
+
+  function toggleSelectAll() {
+    if (selected.size === records.length) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(records.map((r) => r.studentId)))
+    }
+  }
+
+  function bulkSetStatus(status: AttendanceStatus) {
+    setRecords((prev) =>
+      prev.map((r) =>
+        selected.has(r.studentId) ? { ...r, status } : r
+      )
+    )
+    setSelected(new Set())
+  }
+
+  const allSelected = records.length > 0 && selected.size === records.length
+  const someSelected = selected.size > 0
 
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Select Class & Date</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Select Class & Date
+          </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row gap-3">
           <Select value={classId} onValueChange={setClassId}>
@@ -135,41 +169,80 @@ export function AttendanceClient({ classes }: Props) {
               {saving ? "Saving..." : saved ? "Saved ✓" : "Save Attendance"}
             </Button>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {records.map((record) => (
-                <div
-                  key={record.studentId}
-                  className="flex items-center justify-between py-2 border-b last:border-0"
-                >
+          <CardContent className="space-y-3">
+            {/* Bulk actions */}
+            <div className="flex items-center gap-3 pb-2 border-b">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={toggleSelectAll}
+                id="select-all"
+              />
+              <label
+                htmlFor="select-all"
+                className="text-sm text-muted-foreground cursor-pointer"
+              >
+                {allSelected ? "Deselect all" : "Select all"}
+              </label>
+
+              {someSelected && (
+                <div className="flex items-center gap-2 ml-auto">
+                  <span className="text-xs text-muted-foreground">
+                    {selected.size} selected — mark as:
+                  </span>
+                  {statusOptions.map((opt) => (
+                    <Button
+                      key={opt.value}
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => bulkSetStatus(opt.value)}
+                    >
+                      {opt.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Student rows */}
+            {records.map((record) => (
+              <div
+                key={record.studentId}
+                className="flex items-center justify-between py-2 border-b last:border-0"
+              >
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={selected.has(record.studentId)}
+                    onCheckedChange={() => toggleSelect(record.studentId)}
+                  />
                   <div>
                     <p className="text-sm font-medium">{record.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {record.studentNumber}
                     </p>
                   </div>
-                  <Select
-                    value={record.status}
-                    onValueChange={(val) =>
-                      updateStatus(record.studentId, val as AttendanceStatus)
-                    }
-                  >
-                    <SelectTrigger
-                      className={`w-32 ${statusColor[record.status]}`}
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
-              ))}
-            </div>
+                <Select
+                  value={record.status}
+                  onValueChange={(val) =>
+                    updateStatus(record.studentId, val as AttendanceStatus)
+                  }
+                >
+                  <SelectTrigger
+                    className={`w-32 ${statusColor[record.status]}`}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}

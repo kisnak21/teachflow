@@ -20,8 +20,10 @@ interface Assignment {
   title: string
   description: string | null
   dueDate: Date
-  classId: string
-  class: { id: string; name: string }
+  classes: {
+    classId: string
+    class: { id: string; name: string }
+  }[]
 }
 
 interface Props {
@@ -53,17 +55,27 @@ export function AssignmentList({ assignments, classes }: Props) {
           <TableHeader>
             <TableRow>
               <TableHead>Title</TableHead>
-              <TableHead>Class</TableHead>
+              <TableHead>Classes</TableHead>
               <TableHead>Due Date</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-20"></TableHead>
+              <TableHead className="w-[80px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {assignments.map((assignment) => (
               <TableRow key={assignment.id}>
-                <TableCell className="font-medium">{assignment.title}</TableCell>
-                <TableCell>{assignment.class.name}</TableCell>
+                <TableCell className="font-medium">
+                  {assignment.title}
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {assignment.classes.map((ac) => (
+                      <Badge key={ac.classId} variant="secondary">
+                        {ac.class.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
                 <TableCell>
                   {new Date(assignment.dueDate).toLocaleDateString()}
                 </TableCell>
@@ -71,11 +83,17 @@ export function AssignmentList({ assignments, classes }: Props) {
                   {isOverdue(assignment.dueDate) ? (
                     <Badge variant="destructive">Overdue</Badge>
                   ) : isDueSoon(assignment.dueDate) ? (
-                    <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                    <Badge
+                      variant="outline"
+                      className="text-yellow-600 border-yellow-600"
+                    >
                       Due Soon
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-green-600 border-green-600">
+                    <Badge
+                      variant="outline"
+                      className="text-green-600 border-green-600"
+                    >
                       Upcoming
                     </Badge>
                   )}
@@ -94,7 +112,9 @@ export function AssignmentList({ assignments, classes }: Props) {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(assignment.id, assignment.title)}
+                      onClick={() =>
+                        handleDelete(assignment.id, assignment.title)
+                      }
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

@@ -11,13 +11,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 import { updateAssignment } from "@/lib/actions/assignment.actions"
 
 interface Props {
@@ -26,22 +20,49 @@ interface Props {
     title: string
     description: string | null
     dueDate: Date
-    classId: string
+    classes: {
+      classId: string
+      class: { id: string; name: string }
+    }[]
   }
   classes: { id: string; name: string }[]
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function EditAssignmentDialog({ assignment, classes, open, onOpenChange }: Props) {
+export function EditAssignmentDialog({
+  assignment,
+  classes,
+  open,
+  onOpenChange,
+}: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [form, setForm] = useState({
     title: assignment.title,
     description: assignment.description ?? "",
     dueDate: new Date(assignment.dueDate).toISOString().split("T")[0],
-    classId: assignment.classId,
+    classIds: assignment.classes.map((ac) => ac.classId),
   })
+
+  function toggleClass(classId: string) {
+    setForm((prev) => ({
+      ...prev,
+      classIds: prev.classIds.includes(classId)
+        ? prev.classIds.filter((id) => id !== classId)
+        : [...prev.classIds, classId],
+    }))
+  }
+
+  function toggleAll() {
+    setForm((prev) => ({
+      ...prev,
+      classIds:
+        prev.classIds.length === classes.length
+          ? []
+          : classes.map((c) => c.id),
+    }))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -57,6 +78,8 @@ export function EditAssignmentDialog({ assignment, classes, open, onOpenChange }
       setLoading(false)
     }
   }
+
+  const allSelected = form.classIds.length === classes.length
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -79,7 +102,9 @@ export function EditAssignmentDialog({ assignment, classes, open, onOpenChange }
             <Textarea
               id="edit-description"
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
               rows={3}
             />
           </div>
@@ -94,22 +119,33 @@ export function EditAssignmentDialog({ assignment, classes, open, onOpenChange }
             />
           </div>
           <div className="space-y-2">
-            <Label>Class</Label>
-            <Select
-              value={form.classId}
-              onValueChange={(val) => setForm({ ...form, classId: val })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {classes.map((cls) => (
-                  <SelectItem key={cls.id} value={cls.id}>
+            <div className="flex items-center justify-between">
+              <Label>Classes</Label>
+              <button
+                type="button"
+                onClick={toggleAll}
+                className="text-xs text-primary hover:underline"
+              >
+                {allSelected ? "Deselect all" : "Select all"}
+              </button>
+            </div>
+            <div className="border rounded-md p-3 space-y-2 max-h-40 overflow-y-auto">
+              {classes.map((cls) => (
+                <div key={cls.id} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`edit-class-${cls.id}`}
+                    checked={form.classIds.includes(cls.id)}
+                    onCheckedChange={() => toggleClass(cls.id)}
+                  />
+                  <label
+                    htmlFor={`edit-class-${cls.id}`}
+                    className="text-sm cursor-pointer"
+                  >
                     {cls.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  </label>
+                </div>
+              ))}
+            </div>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-end gap-2">

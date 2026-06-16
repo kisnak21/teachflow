@@ -12,15 +12,15 @@ export async function getClasses() {
   return db.class.findMany({
     where: { teacherId: session.user.id },
     include: { _count: { select: { students: true } } },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ level: "asc" }, { name: "asc" }],
   })
 }
 
-export async function createClass(name: string) {
+export async function createClass(data: { name: string; level: string }) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
 
-  const parsed = classSchema.safeParse({ name })
+  const parsed = classSchema.safeParse(data)
   if (!parsed.success) {
     throw new Error(parsed.error.errors[0].message)
   }
@@ -28,6 +28,7 @@ export async function createClass(name: string) {
   await db.class.create({
     data: {
       name: parsed.data.name,
+      level: parsed.data.level,
       teacherId: session.user.id,
     },
   })
@@ -35,18 +36,24 @@ export async function createClass(name: string) {
   revalidatePath("/classes")
 }
 
-export async function updateClass(id: string, name: string) {
+export async function updateClass(
+  id: string,
+  data: { name: string; level: string }
+) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
 
-  const parsed = classSchema.safeParse({ name })
+  const parsed = classSchema.safeParse(data)
   if (!parsed.success) {
     throw new Error(parsed.error.errors[0].message)
   }
 
   await db.class.update({
     where: { id, teacherId: session.user.id },
-    data: { name: parsed.data.name },
+    data: {
+      name: parsed.data.name,
+      level: parsed.data.level,
+    },
   })
 
   revalidatePath("/classes")

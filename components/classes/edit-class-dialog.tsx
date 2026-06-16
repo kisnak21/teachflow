@@ -16,13 +16,21 @@ interface EditClassDialogProps {
   cls: {
     id: string
     name: string
+    level: string | null
   }
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function EditClassDialog({ cls, open, onOpenChange }: EditClassDialogProps) {
-  const [name, setName] = useState(cls.name)
+export function EditClassDialog({
+  cls,
+  open,
+  onOpenChange,
+}: EditClassDialogProps) {
+  const [form, setForm] = useState({
+    name: cls.name,
+    level: cls.level ?? "",
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -32,7 +40,7 @@ export function EditClassDialog({ cls, open, onOpenChange }: EditClassDialogProp
     setError("")
 
     try {
-      await updateClass(cls.id, name)
+      await updateClass(cls.id, form)
       onOpenChange(false)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong")
@@ -49,11 +57,20 @@ export function EditClassDialog({ cls, open, onOpenChange }: EditClassDialogProp
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           <div className="space-y-2">
+            <Label htmlFor="edit-level">Level</Label>
+            <Input
+              id="edit-level"
+              value={form.level}
+              onChange={(e) => setForm({ ...form, level: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="edit-name">Class Name</Label>
             <Input
               id="edit-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
             />
           </div>

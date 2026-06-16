@@ -2,6 +2,7 @@ import { z } from "zod"
 
 export const classSchema = z.object({
   name: z.string().min(1, "Class name is required").max(100),
+  level: z.string().min(1, "Level is required").max(100),
 })
 
 export const studentSchema = z.object({

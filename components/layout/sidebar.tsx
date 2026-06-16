@@ -13,6 +13,7 @@ import {
   Settings,
   GraduationCap,
   Menu,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,8 @@ const navItems = [
   { href: "/attendance", label: "Attendance", icon: CalendarCheck },
   { href: "/assignments", label: "Assignments", icon: ClipboardList },
   { href: "/lesson-plans", label: "Lesson Plans", icon: FileText },
-];
+  { href: "/lesson-plans/generate", label: "AI Generator", icon: Sparkles },
+]
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();

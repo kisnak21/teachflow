@@ -30,7 +30,7 @@ export async function createLessonPlan(data: {
 
   const parsed = lessonPlanSchema.safeParse(data)
   if (!parsed.success) {
-    throw new Error(parsed.error.errors[0].message)
+    throw new Error(parsed.error.issues[0].message)
   }
 
   await db.lessonPlan.create({
@@ -66,7 +66,7 @@ export async function updateLessonPlan(
 
   const parsed = lessonPlanSchema.safeParse(data)
   if (!parsed.success) {
-    throw new Error(parsed.error.errors[0].message)
+    throw new Error(parsed.error.issues[0].message)
   }
 
   await db.lessonPlan.update({

@@ -14,7 +14,7 @@ export async function updateProfile(data: { name: string }) {
 
   const parsed = updateProfileSchema.safeParse(data)
   if (!parsed.success) {
-    throw new Error(parsed.error.errors[0].message)
+    throw new Error(parsed.error.issues[0].message)
   }
 
   await db.user.update({

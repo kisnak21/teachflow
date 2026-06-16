@@ -31,7 +31,7 @@ export async function createAssignment(data: {
 
   const parsed = assignmentSchema.safeParse(data)
   if (!parsed.success) {
-    throw new Error(parsed.error.errors[0].message)
+    throw new Error(parsed.error.issues[0].message)
   }
 
   await db.assignment.create({
@@ -63,7 +63,7 @@ export async function updateAssignment(
 
   const parsed = assignmentSchema.safeParse(data)
   if (!parsed.success) {
-    throw new Error(parsed.error.errors[0].message)
+    throw new Error(parsed.error.issues[0].message)
   }
 
   await db.assignmentClass.deleteMany({ where: { assignmentId: id } })

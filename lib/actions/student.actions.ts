@@ -29,7 +29,7 @@ export async function createStudent(data: {
 
   const parsed = studentSchema.safeParse(data)
   if (!parsed.success) {
-    throw new Error(parsed.error.errors[0].message)
+    throw new Error(parsed.error.issues[0].message)
   }
 
   await db.student.create({
@@ -56,7 +56,7 @@ export async function updateStudent(
 
   const parsed = studentSchema.safeParse(data)
   if (!parsed.success) {
-    throw new Error(parsed.error.errors[0].message)
+    throw new Error(parsed.error.issues[0].message)
   }
 
   await db.student.update({

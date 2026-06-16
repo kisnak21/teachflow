@@ -29,7 +29,7 @@ export async function generateLessonPlan(
 
   const parsed = generateSchema.safeParse(data)
   if (!parsed.success) {
-    throw new Error(parsed.error.errors[0].message)
+    throw new Error(parsed.error.issues[0].message)
   }
 
   const { subject, topic, grade, duration } = parsed.data

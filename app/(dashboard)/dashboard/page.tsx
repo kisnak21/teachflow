@@ -20,12 +20,13 @@ async function getDashboardStats(teacherId: string) {
       db.student.count({
         where: { class: { teacherId } },
       }),
-      db.attendance.count({
+      db.attendance.groupBy({
+        by: ["status"],
         where: {
           class: { teacherId },
           date: { gte: today, lt: tomorrow },
-          status: "PRESENT",
         },
+        _count: { status: true },
       }),
       db.assignment.count({
         where: {
@@ -35,12 +36,39 @@ async function getDashboardStats(teacherId: string) {
       }),
     ])
 
-  return { totalClasses, totalStudents, todayAttendance, upcomingAssignments }
+  const totalAttendance = todayAttendance.reduce(
+    (sum, r) => sum + r._count.status,
+    0
+  )
+  const presentCount =
+    todayAttendance.find((r) => r.status === "PRESENT")?._count.status ?? 0
+  const attendanceRate =
+    totalAttendance > 0
+      ? Math.round((presentCount / totalAttendance) * 100)
+      : null
+
+  return {
+    totalClasses,
+    totalStudents,
+    attendanceRate,
+    totalAttendance,
+    upcomingAssignments,
+  }
 }
 
 export default async function DashboardPage() {
   const session = await auth()
   const stats = await getDashboardStats(session!.user!.id!)
+
+  const attendanceDisplay =
+    stats.attendanceRate !== null
+      ? `${stats.attendanceRate}%`
+      : "—"
+
+  const attendanceDescription =
+    stats.totalAttendance > 0
+      ? `${stats.totalAttendance} recorded today`
+      : "No attendance recorded today"
 
   const cards = [
     {
@@ -57,9 +85,9 @@ export default async function DashboardPage() {
     },
     {
       title: "Today's Attendance",
-      value: stats.todayAttendance,
+      value: attendanceDisplay,
       icon: CalendarCheck,
-      description: "Present today",
+      description: attendanceDescription,
     },
     {
       title: "Upcoming Assignments",
@@ -74,7 +102,7 @@ export default async function DashboardPage() {
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">Dashboard</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Welcome back. Here`s what`s happening today.
+          Welcome back. Here&apos;s what&apos;s happening today.
         </p>
       </div>
 

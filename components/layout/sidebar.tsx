@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   Users,
@@ -13,38 +13,39 @@ import {
   Settings,
   GraduationCap,
   Menu,
-  Sparkles
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+  Sparkles,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
   SheetTitle,
-} from "@/components/ui/sheet";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+} from '@/components/ui/sheet'
+import { ThemeToggle } from '@/components/theme-toggle'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/classes", label: "Classes", icon: BookOpen },
-  { href: "/students", label: "Students", icon: Users },
-  { href: "/attendance", label: "Attendance", icon: CalendarCheck },
-  { href: "/assignments", label: "Assignments", icon: ClipboardList },
-  { href: "/lesson-plans", label: "Lesson Plans", icon: FileText },
-  { href: "/lesson-plans/generate", label: "AI Generator", icon: Sparkles },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/classes', label: 'Classes', icon: BookOpen },
+  { href: '/students', label: 'Students', icon: Users },
+  { href: '/attendance', label: 'Attendance', icon: CalendarCheck },
+  { href: '/assignments', label: 'Assignments', icon: ClipboardList },
+  { href: '/lesson-plans', label: 'Lesson Plans', icon: FileText },
+  { href: '/lesson-plans/generate', label: 'AI Generator', icon: Sparkles },
 ]
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
-  const pathname = usePathname();
+  const pathname = usePathname()
 
   return (
     <>
       <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map((item) => {
-          const Icon = item.icon;
+          const Icon = item.icon
           const isActive =
-            pathname === item.href || pathname.startsWith(item.href + "/");
+            pathname === item.href || pathname.startsWith(item.href + '/')
 
           return (
             <Link
@@ -52,16 +53,16 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                 isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
               {item.label}
             </Link>
-          );
+          )
         })}
       </nav>
       <div className="px-3 py-4 border-t">
@@ -69,10 +70,10 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           href="/settings"
           onClick={onNavigate}
           className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-            pathname === "/settings"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground",
+            'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+            pathname === '/settings'
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           )}
         >
           <Settings className="h-4 w-4 shrink-0" />
@@ -80,7 +81,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
         </Link>
       </div>
     </>
-  );
+  )
 }
 
 function Logo() {
@@ -89,11 +90,11 @@ function Logo() {
       <GraduationCap className="h-6 w-6 text-primary" />
       <span className="font-semibold text-lg tracking-tight">TeachFlow</span>
     </div>
-  );
+  )
 }
 
 export function Sidebar() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   return (
     <>
@@ -104,28 +105,31 @@ export function Sidebar() {
       </aside>
 
       {/* Mobile hamburger */}
-      <div className="lg:hidden fixed top-0 left-0 z-50 flex items-center h-14 px-4 border-b bg-background w-full">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64">
-            <VisuallyHidden>
-              <SheetTitle>Navigation Menu</SheetTitle>
-            </VisuallyHidden>
-            <div className="flex flex-col h-full">
-              <Logo />
-              <NavLinks onNavigate={() => setOpen(false)} />
-            </div>
-          </SheetContent>
-        </Sheet>
-        <div className="flex items-center gap-2 ml-2">
-          <GraduationCap className="h-5 w-5 text-primary" />
-          <span className="font-semibold tracking-tight">TeachFlow</span>
+      <div className="lg:hidden fixed top-0 left-0 z-50 flex items-center justify-between h-14 px-4 border-b bg-background w-full">
+        <div className="flex items-center gap-2">
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-64">
+              <VisuallyHidden>
+                <SheetTitle>Navigation Menu</SheetTitle>
+              </VisuallyHidden>
+              <div className="flex flex-col h-full">
+                <Logo />
+                <NavLinks onNavigate={() => setOpen(false)} />
+              </div>
+            </SheetContent>
+          </Sheet>
+          <div className="flex items-center gap-2">
+            <GraduationCap className="h-5 w-5 text-primary" />
+            <span className="font-semibold tracking-tight">TeachFlow</span>
+          </div>
         </div>
+        <ThemeToggle />
       </div>
     </>
-  );
+  )
 }

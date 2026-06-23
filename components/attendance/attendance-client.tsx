@@ -1,19 +1,21 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { getAttendance, saveAttendance } from "@/lib/actions/attendance.actions"
-import { AttendanceStatus } from "@prisma/client"
-import { getStudents } from "@/lib/actions/student.actions"
-import { Checkbox } from "@/components/ui/checkbox"
+} from '@/components/ui/select'
+import { getAttendance, saveAttendance } from '@/lib/actions/attendance.actions'
+import { AttendanceStatus } from '@prisma/client'
+import { getStudents } from '@/lib/actions/student.actions'
+import { Checkbox } from '@/components/ui/checkbox'
+import { generateAttendancePDF } from '@/lib/actions/pdf.actions'
+import { Download } from 'lucide-react'
 
 interface Props {
   classes: { id: string; name: string }[]
@@ -27,25 +29,55 @@ interface StudentAttendance {
 }
 
 const statusOptions = [
-  { value: AttendanceStatus.PRESENT, label: "Present" },
-  { value: AttendanceStatus.ABSENT, label: "Absent" },
-  { value: AttendanceStatus.LATE, label: "Late" },
+  { value: AttendanceStatus.PRESENT, label: 'Present' },
+  { value: AttendanceStatus.ABSENT, label: 'Absent' },
+  { value: AttendanceStatus.LATE, label: 'Late' },
 ]
 
 const statusColor = {
-  PRESENT: "text-green-600",
-  ABSENT: "text-red-600",
-  LATE: "text-yellow-600",
+  PRESENT: 'text-green-600',
+  ABSENT: 'text-red-600',
+  LATE: 'text-yellow-600',
 }
 
 export function AttendanceClient({ classes }: Props) {
-  const [classId, setClassId] = useState("")
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0])
+  const [classId, setClassId] = useState('')
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [records, setRecords] = useState<StudentAttendance[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [exporting, setExporting] = useState(false)
+
+  async function handleExportPDF() {
+    if (!classId || !date) return
+    setExporting(true)
+
+    try {
+      const base64 = await generateAttendancePDF(classId, date)
+      const className = classes.find((c) => c.id === classId)?.name ?? 'class'
+
+      const byteCharacters = atob(base64)
+      const byteNumbers = new Array(byteCharacters.length)
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i)
+      }
+      const byteArray = new Uint8Array(byteNumbers)
+      const blob = new Blob([byteArray], { type: 'application/pdf' })
+
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `attendance-${className}-${date}.pdf`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setExporting(false)
+    }
+  }
 
   async function handleLoad() {
     if (!classId || !date) return
@@ -114,9 +146,7 @@ export function AttendanceClient({ classes }: Props) {
 
   function bulkSetStatus(status: AttendanceStatus) {
     setRecords((prev) =>
-      prev.map((r) =>
-        selected.has(r.studentId) ? { ...r, status } : r
-      )
+      prev.map((r) => (selected.has(r.studentId) ? { ...r, status } : r))
     )
     setSelected(new Set())
   }
@@ -154,7 +184,7 @@ export function AttendanceClient({ classes }: Props) {
           />
 
           <Button onClick={handleLoad} disabled={!classId || loading}>
-            {loading ? "Loading..." : "Load Students"}
+            {loading ? 'Loading...' : 'Load Students'}
           </Button>
         </CardContent>
       </Card>
@@ -165,9 +195,20 @@ export function AttendanceClient({ classes }: Props) {
             <CardTitle className="text-sm font-medium">
               {classes.find((c) => c.id === classId)?.name} — {date}
             </CardTitle>
-            <Button size="sm" onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : saved ? "Saved ✓" : "Save Attendance"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleExportPDF}
+                disabled={exporting}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {exporting ? 'Exporting...' : 'Export PDF'}
+              </Button>
+              <Button size="sm" onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save Attendance'}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
             {/* Bulk actions */}
@@ -181,7 +222,7 @@ export function AttendanceClient({ classes }: Props) {
                 htmlFor="select-all"
                 className="text-sm text-muted-foreground cursor-pointer"
               >
-                {allSelected ? "Deselect all" : "Select all"}
+                {allSelected ? 'Deselect all' : 'Select all'}
               </label>
 
               {someSelected && (

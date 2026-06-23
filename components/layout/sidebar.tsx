@@ -14,6 +14,7 @@ import {
   GraduationCap,
   Menu,
   Sparkles,
+  BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -34,6 +35,7 @@ const navItems = [
   { href: '/assignments', label: 'Assignments', icon: ClipboardList },
   { href: '/lesson-plans', label: 'Lesson Plans', icon: FileText },
   { href: '/lesson-plans/generate', label: 'AI Generator', icon: Sparkles },
+  { href: "/analytics", label: "Analytics", icon: BarChart3 },
 ]
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {

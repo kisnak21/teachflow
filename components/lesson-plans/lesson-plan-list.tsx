@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Pencil, Trash2, ChevronDown, ChevronUp } from "lucide-react"
+import { Pencil, Trash2, ChevronDown, ChevronUp, Paperclip } from "lucide-react"
 import { deleteLessonPlan } from "@/lib/actions/lesson-plan.actions"
 import { EditLessonPlanDialog } from "./edit-lesson-plan-dialog"
 
@@ -23,6 +23,7 @@ interface LessonPlan {
   notes: string | null
   classId: string
   class: { id: string; name: string }
+  attachments: { id: string; name: string; url: string }[]
 }
 
 interface Props {
@@ -114,6 +115,27 @@ export function LessonPlanList({ lessonPlans, classes }: Props) {
                       Notes
                     </p>
                     <p className="text-sm">{plan.notes}</p>
+                  </div>
+                )}
+                {plan.attachments.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                      Attachments
+                    </p>
+                    <div className="space-y-1">
+                      {plan.attachments.map((file) => (
+                        <a
+                          key={file.id}
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-sm text-primary hover:underline"
+                        >
+                          <Paperclip className="h-3.5 w-3.5" />
+                          {file.name}
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 )}
               </CardContent>

@@ -11,7 +11,7 @@ export async function getLessonPlans() {
 
   return db.lessonPlan.findMany({
     where: { teacherId: session.user.id },
-    include: { class: true },
+    include: { class: true, attachments: true },
     orderBy: { createdAt: "desc" },
   })
 }

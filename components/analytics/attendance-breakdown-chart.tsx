@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   PieChart,
   Pie,
@@ -8,16 +8,16 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
-} from "recharts"
+} from 'recharts'
 
 interface Props {
   data: { name: string; value: number; percentage: number }[]
 }
 
 const COLORS: Record<string, string> = {
-  PRESENT: "#16a34a",
-  ABSENT: "#dc2626",
-  LATE: "#ca8a04",
+  PRESENT: '#16a34a',
+  ABSENT: '#dc2626',
+  LATE: '#ca8a04',
 }
 
 export function AttendanceBreakdownChart({ data }: Props) {
@@ -45,14 +45,13 @@ export function AttendanceBreakdownChart({ data }: Props) {
                 cx="50%"
                 cy="50%"
                 outerRadius={90}
-                label={({ name, percentage }) => `${name}: ${percentage}%`}
+                label={(props: { name?: string; percentage?: number }) =>
+                  `${props.name}: ${props.percentage}%`
+                }
                 labelLine={false}
               >
                 {data.map((entry) => (
-                  <Cell
-                    key={entry.name}
-                    fill={COLORS[entry.name] ?? "#888"}
-                  />
+                  <Cell key={entry.name} fill={COLORS[entry.name] ?? '#888'} />
                 ))}
               </Pie>
               <Tooltip />

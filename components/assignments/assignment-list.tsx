@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -10,10 +10,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Pencil, Trash2 } from "lucide-react"
-import { deleteAssignment } from "@/lib/actions/assignment.actions"
-import { EditAssignmentDialog } from "./edit-assignment-dialog"
+} from '@/components/ui/table'
+import { Pencil, Trash2, Paperclip } from 'lucide-react'
+import { deleteAssignment } from '@/lib/actions/assignment.actions'
+import { EditAssignmentDialog } from './edit-assignment-dialog'
 
 interface Assignment {
   id: string
@@ -66,7 +66,18 @@ export function AssignmentList({ assignments, classes }: Props) {
             {assignments.map((assignment) => (
               <TableRow key={assignment.id}>
                 <TableCell className="font-medium">
-                  {assignment.title}
+                  <div className="flex items-center gap-2">
+                    <span>{assignment.title}</span>
+                    {assignment.attachments.length > 0 && (
+                      <span
+                        className="flex items-center gap-1 text-xs text-muted-foreground"
+                        title={`${assignment.attachments.length} attachment(s)`}
+                      >
+                        <Paperclip className="h-3 w-3" />
+                        {assignment.attachments.length}
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
@@ -99,26 +110,20 @@ export function AssignmentList({ assignments, classes }: Props) {
                     </Badge>
                   )}
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setEditAssignment(assignment)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() =>
-                        handleDelete(assignment.id, assignment.title)
-                      }
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    <span>{assignment.title}</span>
+                    {assignment.attachments.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setEditAssignment(assignment)}
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
+                        title={`${assignment.attachments.length} attachment(s) — click to view`}
+                      >
+                        <Paperclip className="h-3 w-3" />
+                        {assignment.attachments.length}
+                      </button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

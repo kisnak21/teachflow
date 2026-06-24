@@ -15,6 +15,7 @@ export async function getAssignments() {
       classes: {
         include: { class: true },
       },
+      attachments: true,
     },
     orderBy: { dueDate: "asc" },
   })

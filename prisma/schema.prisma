@@ -64,6 +64,7 @@ model Assignment {
   createdAt   DateTime          @default(now())
   teacher     User              @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   classes     AssignmentClass[]
+  attachments Attachment[]
 }
 
 model AssignmentClass {
@@ -77,7 +78,7 @@ model AssignmentClass {
 }
 
 model LessonPlan {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   title       String
   subject     String
   objectives  String
@@ -86,7 +87,19 @@ model LessonPlan {
   notes       String?
   classId     String
   teacherId   String
-  createdAt   DateTime @default(now())
-  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
-  teacher     User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  class       Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher     User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+}
+
+model Attachment {
+  id           String      @id @default(cuid())
+  url          String
+  name         String
+  createdAt    DateTime    @default(now())
+  assignmentId String?
+  lessonPlanId String?
+  assignment   Assignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  lessonPlan   LessonPlan? @relation(fields: [lessonPlanId], references: [id], onDelete: Cascade)
 }

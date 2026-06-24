@@ -24,6 +24,7 @@ interface Assignment {
     classId: string
     class: { id: string; name: string }
   }[]
+  attachments: { id: string; name: string; url: string }[]
 }
 
 interface Props {

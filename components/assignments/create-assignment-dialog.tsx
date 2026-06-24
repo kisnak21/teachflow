@@ -78,7 +78,7 @@ export function CreateAssignmentDialog({ classes }: Props) {
           New Assignment
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>Create Assignment</DialogTitle>
         </DialogHeader>

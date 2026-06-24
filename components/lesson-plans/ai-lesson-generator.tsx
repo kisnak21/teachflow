@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Sparkles, Save, Loader2 } from "lucide-react"
+import { Sparkles, Save, Loader2, RotateCcw } from "lucide-react"
 import { generateLessonPlan, GeneratedLessonPlan } from "@/lib/actions/ai.actions"
 import { createLessonPlan } from "@/lib/actions/lesson-plan.actions"
 import { useRouter } from "next/navigation"
@@ -33,24 +33,33 @@ export function AILessonGenerator({ classes }: Props) {
   const [form, setForm] = useState(emptyForm)
   const [classId, setClassId] = useState("")
   const [loading, setLoading] = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [result, setResult] = useState<GeneratedLessonPlan | null>(null)
 
-  async function handleGenerate(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
+  async function runGenerate() {
     setError("")
-    setResult(null)
-
     try {
       const generated = await generateLessonPlan(form)
       setResult(generated)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong")
-    } finally {
-      setLoading(false)
     }
+  }
+
+  async function handleGenerate(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    setResult(null)
+    await runGenerate()
+    setLoading(false)
+  }
+
+  async function handleRegenerate() {
+    setRegenerating(true)
+    await runGenerate()
+    setRegenerating(false)
   }
 
   async function handleSave() {
@@ -116,7 +125,7 @@ export function AILessonGenerator({ classes }: Props) {
                 <Label htmlFor="grade">Grade</Label>
                 <Input
                   id="grade"
-                  placeholder="e.g. XI RPL"
+                  placeholder="e.g. XI RPL or Primary 2"
                   value={form.grade}
                   onChange={(e) => setForm({ ...form, grade: e.target.value })}
                   required
@@ -155,9 +164,24 @@ export function AILessonGenerator({ classes }: Props) {
 
       {result && (
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
             <CardTitle className="text-sm font-medium">{result.title}</CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleRegenerate}
+                disabled={regenerating || loading}
+              >
+                {regenerating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Regenerate
+                  </>
+                )}
+              </Button>
               <Select value={classId} onValueChange={setClassId}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Select class" />

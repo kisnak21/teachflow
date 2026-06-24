@@ -34,13 +34,22 @@ export async function generateLessonPlan(
 
   const { subject, topic, grade, duration } = parsed.data
 
-  const prompt = `You are an experienced teacher creating a lesson plan.
+  const prompt = `You are an experienced teacher creating a lesson plan specifically calibrated for the grade level given.
 
-Generate a detailed lesson plan for:
+Lesson details:
 - Subject: ${subject}
 - Topic: ${topic}
-- Grade: ${grade}
+- Grade/Level: ${grade}
 - Duration: ${duration}
+
+CRITICAL — calibrate everything to the grade level "${grade}":
+- If this is an early grade (e.g. Primary/Elementary 1-3), use simple vocabulary, short sentences, concrete and hands-on activities, and shorter attention-span pacing. Avoid abstract concepts.
+- If this is upper primary (e.g. Primary 4-6), balance concrete and slightly abstract ideas, with guided independent work.
+- If this is lower secondary (e.g. Grade 7-9 / SMP / Junior High), include more independent problem-solving and group work.
+- If this is upper secondary (e.g. Grade 10-12 / SMA / Senior High / vocational tracks like XI RPL), include analytical tasks, real-world application, and assessment that tests deeper understanding.
+- Match terminology, examples, and references (objects, scenarios, language complexity) to what is age-appropriate for "${grade}" students specifically — do not write generic content that ignores the grade.
+
+Generate a detailed, grade-appropriate lesson plan.
 
 Respond ONLY with a valid JSON object in this exact format, no other text:
 {

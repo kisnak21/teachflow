@@ -3,6 +3,7 @@ import { getClasses } from "@/lib/actions/class.actions"
 import { StudentTable } from "@/components/students/student-table"
 import { CreateStudentDialog } from "@/components/students/create-student-dialog"
 import { StudentFilter } from "@/components/students/student-filter"
+import {ImportStudentsDialog} from "@/components/students/import-students-dialog"
 import { Users } from "lucide-react"
 
 interface Props {
@@ -26,7 +27,10 @@ export default async function StudentsPage({ searchParams }: Props) {
             Manage your students
           </p>
         </div>
-        <CreateStudentDialog classes={classes} />
+        <div className="flex items-center gap-2">
+          <ImportStudentsDialog />
+          <CreateStudentDialog classes={classes} />
+        </div>
       </div>
 
       <StudentFilter classes={classes} selectedClassId={classId} />

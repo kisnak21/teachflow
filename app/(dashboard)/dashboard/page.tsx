@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, Users, CalendarCheck, ClipboardList } from "lucide-react"
-import { auth } from "@/auth"
-import { db } from "@/lib/db"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { BookOpen, Users, CalendarCheck, ClipboardList } from 'lucide-react'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
 
 async function getDashboardStats(teacherId: string) {
   const today = new Date()
@@ -21,7 +21,7 @@ async function getDashboardStats(teacherId: string) {
         where: { class: { teacherId } },
       }),
       db.attendance.groupBy({
-        by: ["status"],
+        by: ['status'],
         where: {
           class: { teacherId },
           date: { gte: today, lt: tomorrow },
@@ -41,7 +41,7 @@ async function getDashboardStats(teacherId: string) {
     0
   )
   const presentCount =
-    todayAttendance.find((r) => r.status === "PRESENT")?._count.status ?? 0
+    todayAttendance.find((r) => r.status === 'PRESENT')?._count.status ?? 0
   const attendanceRate =
     totalAttendance > 0
       ? Math.round((presentCount / totalAttendance) * 100)
@@ -58,30 +58,29 @@ async function getDashboardStats(teacherId: string) {
 
 export default async function DashboardPage() {
   const session = await auth()
+  console.log('SESSION ROLE:', session?.user?.role)
   const stats = await getDashboardStats(session!.user!.id!)
 
   const attendanceDisplay =
-    stats.attendanceRate !== null
-      ? `${stats.attendanceRate}%`
-      : "—"
+    stats.attendanceRate !== null ? `${stats.attendanceRate}%` : '—'
 
   const attendanceDescription =
     stats.totalAttendance > 0
       ? `${stats.totalAttendance} recorded today`
-      : "No attendance recorded today"
+      : 'No attendance recorded today'
 
   const cards = [
     {
-      title: "Total Classes",
+      title: 'Total Classes',
       value: stats.totalClasses,
       icon: BookOpen,
-      description: "Active classes",
+      description: 'Active classes',
     },
     {
-      title: "Total Students",
+      title: 'Total Students',
       value: stats.totalStudents,
       icon: Users,
-      description: "Enrolled students",
+      description: 'Enrolled students',
     },
     {
       title: "Today's Attendance",
@@ -90,10 +89,10 @@ export default async function DashboardPage() {
       description: attendanceDescription,
     },
     {
-      title: "Upcoming Assignments",
+      title: 'Upcoming Assignments',
       value: stats.upcomingAssignments,
       icon: ClipboardList,
-      description: "Due this week",
+      description: 'Due this week',
     },
   ]
 

@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/sheet'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+import { SignOutButton } from '@/components/layout/sign-out-button'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -35,7 +36,7 @@ const navItems = [
   { href: '/assignments', label: 'Assignments', icon: ClipboardList },
   { href: '/lesson-plans', label: 'Lesson Plans', icon: FileText },
   { href: '/lesson-plans/generate', label: 'AI Generator', icon: Sparkles },
-  { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
@@ -67,7 +68,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           )
         })}
       </nav>
-      <div className="px-3 py-4 border-t">
+      <div className="px-3 py-4 border-t space-y-1">
         <Link
           href="/settings"
           onClick={onNavigate}
@@ -81,6 +82,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           <Settings className="h-4 w-4 shrink-0" />
           Settings
         </Link>
+        <SignOutButton />
       </div>
     </>
   )

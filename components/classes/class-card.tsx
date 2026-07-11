@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, Pencil, Trash2, Copy, Check } from 'lucide-react'
+import { generateClassRosterPDF } from '@/lib/actions/pdf.actions'
+import { Users, Pencil, Trash2, Copy, Check, FileDown } from 'lucide-react'
 import { deleteClass } from '@/lib/actions/class.actions'
 import { EditClassDialog } from './edit-class-dialog'
 
@@ -22,6 +23,31 @@ export function ClassCard({ cls }: ClassCardProps) {
   const [deleting, setDeleting] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [exportingRoster, setExportingRoster] = useState(false)
+
+  async function handleExportRoster() {
+    setExportingRoster(true)
+    try {
+      const base64 = await generateClassRosterPDF(cls.id)
+      const byteCharacters = atob(base64)
+      const byteNumbers = new Array(byteCharacters.length)
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i)
+      }
+      const byteArray = new Uint8Array(byteNumbers)
+      const blob = new Blob([byteArray], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `roster-${cls.name}.pdf`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setExportingRoster(false)
+    }
+  }
 
   async function handleDelete() {
     if (!confirm(`Delete "${cls.name}"? This cannot be undone.`)) return
@@ -55,6 +81,16 @@ export function ClassCard({ cls }: ClassCardProps) {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
+                onClick={handleExportRoster}
+                disabled={exportingRoster}
+                title="Export class roster"
+              >
+                <FileDown className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
                 onClick={() => setEditOpen(true)}
               >
                 <Pencil className="h-4 w-4" />
@@ -70,25 +106,31 @@ export function ClassCard({ cls }: ClassCardProps) {
               </Button>
             </div>
           </div>
-          <div className="flex items-center justify-between bg-muted rounded-md px-3 py-2">
+          <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-md px-3 py-2.5">
             <div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs font-medium text-primary">
                 Student Access Code
               </p>
-              <p className="text-xs font-mono font-medium truncate max-w-40">
+              <p className="text-sm font-mono font-semibold tracking-wide">
                 {cls.accessCode}
               </p>
             </div>
             <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 shrink-0"
+              variant="outline"
+              size="sm"
+              className="h-7 shrink-0 text-xs"
               onClick={handleCopy}
             >
               {copied ? (
-                <Check className="h-3.5 w-3.5 text-green-600" />
+                <>
+                  <Check className="h-3.5 w-3.5 mr-1 text-green-600" />
+                  Copied
+                </>
               ) : (
-                <Copy className="h-3.5 w-3.5" />
+                <>
+                  <Copy className="h-3.5 w-3.5 mr-1" />
+                  Copy
+                </>
               )}
             </Button>
           </div>

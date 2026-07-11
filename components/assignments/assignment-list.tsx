@@ -59,7 +59,7 @@ export function AssignmentList({ assignments, classes }: Props) {
               <TableHead>Classes</TableHead>
               <TableHead>Due Date</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-[80px]"></TableHead>
+              <TableHead className="w-[100px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -69,13 +69,15 @@ export function AssignmentList({ assignments, classes }: Props) {
                   <div className="flex items-center gap-2">
                     <span>{assignment.title}</span>
                     {assignment.attachments.length > 0 && (
-                      <span
-                        className="flex items-center gap-1 text-xs text-muted-foreground"
-                        title={`${assignment.attachments.length} attachment(s)`}
+                      <button
+                        type="button"
+                        onClick={() => setEditAssignment(assignment)}
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
+                        title={`${assignment.attachments.length} attachment(s) — click to view`}
                       >
                         <Paperclip className="h-3 w-3" />
                         {assignment.attachments.length}
-                      </span>
+                      </button>
                     )}
                   </div>
                 </TableCell>
@@ -110,20 +112,26 @@ export function AssignmentList({ assignments, classes }: Props) {
                     </Badge>
                   )}
                 </TableCell>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <span>{assignment.title}</span>
-                    {assignment.attachments.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setEditAssignment(assignment)}
-                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
-                        title={`${assignment.attachments.length} attachment(s) — click to view`}
-                      >
-                        <Paperclip className="h-3 w-3" />
-                        {assignment.attachments.length}
-                      </button>
-                    )}
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setEditAssignment(assignment)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() =>
+                        handleDelete(assignment.id, assignment.title)
+                      }
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>

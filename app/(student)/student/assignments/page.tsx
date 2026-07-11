@@ -9,12 +9,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Paperclip } from 'lucide-react'
 
 async function getClassAssignments(classId: string) {
   return db.assignment.findMany({
     where: {
       classes: { some: { classId } },
     },
+    include: { attachments: true },
     orderBy: { dueDate: 'asc' },
   })
 }
@@ -56,6 +58,7 @@ export default async function StudentAssignmentsPage() {
                 <TableHead>Description</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Attachments</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -95,6 +98,28 @@ export default async function StudentAssignmentsPage() {
                       >
                         Upcoming
                       </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {assignment.attachments.length === 0 ? (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    ) : (
+                      <div className="space-y-1">
+                        {assignment.attachments.map((file) => (
+                          <a
+                            key={file.id}
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+                          >
+                            <Paperclip className="h-3 w-3 shrink-0" />
+                            <span className="truncate max-w-30">
+                              {file.name}
+                            </span>
+                          </a>
+                        ))}
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>

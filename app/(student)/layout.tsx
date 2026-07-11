@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { StudentNav } from '@/components/student/student-nav'
 
 export default async function StudentLayout({
   children,
@@ -30,29 +31,7 @@ export default async function StudentLayout({
             <GraduationCap className="h-5 w-5 text-primary" />
             <span className="font-semibold tracking-tight">TeachFlow</span>
           </div>
-          <nav className="hidden sm:flex items-center gap-1">
-            <Link
-              href="/student/dashboard"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </Link>
-            <Link
-              href="/student/attendance"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            >
-              <CalendarCheck className="h-4 w-4" />
-              Attendance
-            </Link>
-            <Link
-              href="/student/assignments"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            >
-              <ClipboardList className="h-4 w-4" />
-              Assignments
-            </Link>
-          </nav>
+          <StudentNav />
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-muted-foreground hidden sm:block">

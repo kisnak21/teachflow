@@ -18,6 +18,14 @@ model User {
   lessonPlans LessonPlan[]
 }
 
+model ResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
 model Class {
   id                String            @id @default(cuid())
   name              String

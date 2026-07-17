@@ -30,10 +30,16 @@ export async function createClass(data: { name: string; level: string }) {
       name: parsed.data.name,
       level: parsed.data.level,
       teacherId: session.user.id,
+      accessCode: generateAccessCode(),
     },
   })
 
   revalidatePath("/classes")
+}
+
+/** Generate a human-readable 6-char alphanumeric access code */
+function generateAccessCode(): string {
+  return Math.random().toString(36).slice(2, 8).toUpperCase()
 }
 
 export async function updateClass(

@@ -2,9 +2,20 @@ import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { registerSchema } from "@/lib/validations"
+import { registerRateLimit } from "@/lib/rate-limit"
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get('x-forwarded-for') || 'anonymous'
+    try {
+      await registerRateLimit.check(NextResponse.next(), 5, ip)
+    } catch {
+      return NextResponse.json(
+        { error: "Too many registration attempts. Try again later." },
+        { status: 429 }
+      )
+    }
+
     const body = await req.json()
 
     const parsed = registerSchema.safeParse(body)

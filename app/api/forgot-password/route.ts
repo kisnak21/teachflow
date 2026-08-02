@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { authRateLimit } from "@/lib/rate-limit"
+import { resend } from "@/lib/resend"
 import crypto from "crypto"
 
 export async function POST(req: NextRequest) {
@@ -36,7 +37,26 @@ export async function POST(req: NextRequest) {
       data: { email, token, expiresAt },
     })
 
-    console.log(`[DEV] Password reset link: http://localhost:3000/reset-password/${token}`)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? req.nextUrl.origin
+    const resetUrl = `${baseUrl}/reset-password/${token}`
+
+    if (resend) {
+      await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL ?? "TeachFlow <onboarding@resend.dev>",
+        to: [email],
+        subject: "Reset your TeachFlow password",
+        html: `
+          <p>Hi ${user.name},</p>
+          <p>We received a request to reset your TeachFlow password.</p>
+          <p><a href="${resetUrl}">Click here to reset your password</a></p>
+          <p>This link expires in 1 hour. If you did not request this, you can safely ignore this email.</p>
+        `,
+      })
+    } else {
+      console.log(
+        `[DEV] RESEND_API_KEY not set — password reset link: ${resetUrl}`
+      )
+    }
 
     return NextResponse.json({ message: "If the email exists, a reset link has been sent." })
   } catch {

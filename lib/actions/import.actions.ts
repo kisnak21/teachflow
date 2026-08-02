@@ -1,8 +1,8 @@
 "use server"
 
-import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
+import { requireTeacher } from "@/lib/auth-helpers"
 
 interface ImportRow {
   name: string
@@ -17,11 +17,10 @@ export interface ImportPreviewRow extends ImportRow {
 }
 
 export async function previewStudentImport(rows: ImportRow[]) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   const classes = await db.class.findMany({
-    where: { teacherId: session.user.id },
+    where: { teacherId },
     select: { id: true, name: true },
   })
 
@@ -60,13 +59,21 @@ export async function previewStudentImport(rows: ImportRow[]) {
 }
 
 export async function confirmStudentImport(rows: ImportPreviewRow[]) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   const validRows = rows.filter((r) => r.status === "valid" && r.classId)
 
   if (validRows.length === 0) {
     throw new Error("No valid rows to import")
+  }
+
+  const classIds = Array.from(new Set(validRows.map((r) => r.classId!)))
+  const ownedClasses = await db.class.findMany({
+    where: { id: { in: classIds }, teacherId },
+    select: { id: true },
+  })
+  if (ownedClasses.length !== classIds.length) {
+    throw new Error("Unauthorized class write")
   }
 
   await db.student.createMany({

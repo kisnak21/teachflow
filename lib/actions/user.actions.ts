@@ -1,16 +1,15 @@
 "use server"
 
-import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
+import { requireTeacher } from "@/lib/auth-helpers"
 
 const updateProfileSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
 })
 
 export async function updateProfile(data: { name: string }) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   const parsed = updateProfileSchema.safeParse(data)
   if (!parsed.success) {
@@ -18,7 +17,7 @@ export async function updateProfile(data: { name: string }) {
   }
 
   await db.user.update({
-    where: { id: session.user.id },
+    where: { id: teacherId },
     data: { name: parsed.data.name },
   })
 }

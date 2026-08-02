@@ -1,24 +1,22 @@
 "use server"
 
-import { auth } from "@/auth"
 import { db } from "@/lib/db"
+import { requireTeacher } from "@/lib/auth-helpers"
 import { revalidatePath } from "next/cache"
 import { classSchema } from "@/lib/validations"
 
 export async function getClasses() {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   return db.class.findMany({
-    where: { teacherId: session.user.id },
+    where: { teacherId: teacherId },
     include: { _count: { select: { students: true } } },
     orderBy: [{ level: "asc" }, { name: "asc" }],
   })
 }
 
 export async function createClass(data: { name: string; level: string }) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   const parsed = classSchema.safeParse(data)
   if (!parsed.success) {
@@ -29,7 +27,7 @@ export async function createClass(data: { name: string; level: string }) {
     data: {
       name: parsed.data.name,
       level: parsed.data.level,
-      teacherId: session.user.id,
+      teacherId: teacherId,
       accessCode: generateAccessCode(),
     },
   })
@@ -46,8 +44,7 @@ export async function updateClass(
   id: string,
   data: { name: string; level: string }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   const parsed = classSchema.safeParse(data)
   if (!parsed.success) {
@@ -55,7 +52,7 @@ export async function updateClass(
   }
 
   await db.class.update({
-    where: { id, teacherId: session.user.id },
+    where: { id, teacherId: teacherId },
     data: {
       name: parsed.data.name,
       level: parsed.data.level,
@@ -66,11 +63,10 @@ export async function updateClass(
 }
 
 export async function deleteClass(id: string) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   await db.class.delete({
-    where: { id, teacherId: session.user.id },
+    where: { id, teacherId: teacherId },
   })
 
   revalidatePath("/classes")

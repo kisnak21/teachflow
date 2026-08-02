@@ -1,16 +1,15 @@
 "use server"
 
-import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 import { assignmentSchema } from "@/lib/validations"
+import { requireTeacher } from "@/lib/auth-helpers"
 
 export async function getAssignments() {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   return db.assignment.findMany({
-    where: { teacherId: session.user.id },
+    where: { teacherId },
     include: {
       classes: {
         include: { class: true },
@@ -27,12 +26,19 @@ export async function createAssignment(data: {
   dueDate: string
   classIds: string[]
 }) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   const parsed = assignmentSchema.safeParse(data)
   if (!parsed.success) {
     throw new Error(parsed.error.issues[0].message)
+  }
+
+  const ownedClasses = await db.class.findMany({
+    where: { id: { in: parsed.data.classIds }, teacherId },
+    select: { id: true },
+  })
+  if (ownedClasses.length !== parsed.data.classIds.length) {
+    throw new Error("One or more classes not found")
   }
 
   await db.assignment.create({
@@ -40,7 +46,7 @@ export async function createAssignment(data: {
       title: parsed.data.title,
       description: parsed.data.description,
       dueDate: new Date(parsed.data.dueDate),
-      teacherId: session.user.id,
+      teacherId,
       classes: {
         create: parsed.data.classIds.map((classId) => ({ classId })),
       },
@@ -59,18 +65,31 @@ export async function updateAssignment(
     classIds: string[]
   }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   const parsed = assignmentSchema.safeParse(data)
   if (!parsed.success) {
     throw new Error(parsed.error.issues[0].message)
   }
 
+  const assignment = await db.assignment.findFirst({
+    where: { id, teacherId },
+    select: { id: true },
+  })
+  if (!assignment) throw new Error("Assignment not found")
+
+  const ownedClasses = await db.class.findMany({
+    where: { id: { in: parsed.data.classIds }, teacherId },
+    select: { id: true },
+  })
+  if (ownedClasses.length !== parsed.data.classIds.length) {
+    throw new Error("One or more classes not found")
+  }
+
   await db.assignmentClass.deleteMany({ where: { assignmentId: id } })
 
   await db.assignment.update({
-    where: { id, teacherId: session.user.id },
+    where: { id },
     data: {
       title: parsed.data.title,
       description: parsed.data.description,
@@ -85,11 +104,16 @@ export async function updateAssignment(
 }
 
 export async function deleteAssignment(id: string) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
+
+  const assignment = await db.assignment.findFirst({
+    where: { id, teacherId },
+    select: { id: true },
+  })
+  if (!assignment) throw new Error("Assignment not found")
 
   await db.assignment.delete({
-    where: { id, teacherId: session.user.id },
+    where: { id },
   })
 
   revalidatePath("/assignments")

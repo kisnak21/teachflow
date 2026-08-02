@@ -1,11 +1,10 @@
 "use server"
 
-import { auth } from "@/auth"
 import { db } from "@/lib/db"
+import { requireTeacher } from "@/lib/auth-helpers"
 
 export async function getAttendanceTrend() {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
@@ -13,7 +12,7 @@ export async function getAttendanceTrend() {
 
   const records = await db.attendance.findMany({
     where: {
-      class: { teacherId: session.user.id },
+      class: { teacherId },
       date: { gte: thirtyDaysAgo },
     },
     select: { date: true, status: true },
@@ -41,11 +40,10 @@ export async function getAttendanceTrend() {
 }
 
 export async function getStudentsPerClass() {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   const classes = await db.class.findMany({
-    where: { teacherId: session.user.id },
+    where: { teacherId },
     select: {
       name: true,
       _count: { select: { students: true } },
@@ -60,12 +58,11 @@ export async function getStudentsPerClass() {
 }
 
 export async function getOverallAttendanceRate() {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error("Unauthorized")
+  const teacherId = await requireTeacher()
 
   const records = await db.attendance.groupBy({
     by: ["status"],
-    where: { class: { teacherId: session.user.id } },
+    where: { class: { teacherId } },
     _count: { status: true },
   })
 

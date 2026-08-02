@@ -1,7 +1,7 @@
 'use server'
 
-import { auth } from '@/auth'
 import { groq } from '@/lib/groq'
+import { requireTeacher } from '@/lib/auth-helpers'
 import { z } from 'zod'
 
 const generateSchema = z.object({
@@ -24,8 +24,7 @@ export interface GeneratedLessonPlan {
 export async function generateLessonPlan(
   data: GenerateInput
 ): Promise<GeneratedLessonPlan> {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error('Unauthorized')
+  await requireTeacher()
 
   const parsed = generateSchema.safeParse(data)
   if (!parsed.success) {

@@ -1,15 +1,18 @@
 'use server'
 
-import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 import { AttendanceStatus } from "@prisma/client"
+import { requireTeacher } from "@/lib/auth-helpers"
 
 export async function getAttendance(classId: string, date: string) {
-    const session = await auth()
-    if (!session) {
-        throw new Error("Unauthorized")
-    }
+    const teacherId = await requireTeacher()
+
+    const cls = await db.class.findFirst({
+        where: { id: classId, teacherId },
+        select: { id: true },
+    })
+    if (!cls) throw new Error("Class not found")
 
     const targetDate = new Date(date)
     const nextDay = new Date(targetDate)
@@ -37,10 +40,18 @@ export async function saveAttendance(
         status: AttendanceStatus
     }[]
 ) {
-    const session = await auth()
-    if (!session) {
-        throw new Error("Unauthorized")
+    const teacherId = await requireTeacher()
+
+    if (!record || record.length === 0) {
+        throw new Error("No attendance records provided")
     }
+
+    const classId = record[0].classId
+    const cls = await db.class.findFirst({
+        where: { id: classId, teacherId },
+        select: { id: true },
+    })
+    if (!cls) throw new Error("Class not found")
 
     const date = new Date(record[0].date)
     const nextDay = new Date(date)
@@ -48,7 +59,7 @@ export async function saveAttendance(
 
     await db.attendance.deleteMany({
         where: {
-            classId: record[0].classId,
+            classId,
             date: {
                 gte: date,
                 lt: nextDay

@@ -1,17 +1,16 @@
 'use server'
 
-import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { AttendanceReportPDF } from '@/lib/pdf/attendance-report'
 import { ClassRosterPDF } from '@/lib/pdf/class-roster'
+import { requireTeacher } from '@/lib/auth-helpers'
 
 export async function generateAttendancePDF(classId: string, date: string) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error('Unauthorized')
+  const teacherId = await requireTeacher()
 
   const cls = await db.class.findUnique({
-    where: { id: classId, teacherId: session.user.id },
+    where: { id: classId, teacherId },
   })
   if (!cls) throw new Error('Class not found')
 
@@ -51,11 +50,10 @@ export async function generateAttendancePDF(classId: string, date: string) {
 }
 
 export async function generateClassRosterPDF(classId: string) {
-  const session = await auth()
-  if (!session?.user?.id) throw new Error('Unauthorized')
+  const teacherId = await requireTeacher()
 
   const cls = await db.class.findUnique({
-    where: { id: classId, teacherId: session.user.id },
+    where: { id: classId, teacherId },
     include: {
       students: {
         orderBy: { name: 'asc' },

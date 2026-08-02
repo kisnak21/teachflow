@@ -1,15 +1,7 @@
-import { auth } from '@/auth'
-import { redirect } from 'next/navigation'
+import { requireStudent } from '@/lib/auth-helpers'
 import { signOut } from '@/auth'
-import {
-  GraduationCap,
-  LogOut,
-  LayoutDashboard,
-  CalendarCheck,
-  ClipboardList,
-} from 'lucide-react'
+import { GraduationCap, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import Link from 'next/link'
 import { StudentNav } from '@/components/student/student-nav'
 
 export default async function StudentLayout({
@@ -17,11 +9,7 @@ export default async function StudentLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
-
-  if (!session || session.user.role !== 'student') {
-    redirect('/student/login')
-  }
+  const session = await requireStudent()
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -35,7 +23,7 @@ export default async function StudentLayout({
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-muted-foreground hidden sm:block">
-            {session.user.name}
+            {session.name}
           </span>
           <form
             action={async () => {

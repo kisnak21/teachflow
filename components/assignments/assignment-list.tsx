@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -40,13 +40,15 @@ export function AssignmentList({ assignments, classes }: Props) {
     await deleteAssignment(id)
   }
 
+  const now = useMemo(() => Date.now(), [])
+
   function isDueSoon(dueDate: Date) {
-    const diff = new Date(dueDate).getTime() - Date.now()
+    const diff = new Date(dueDate).getTime() - now
     return diff > 0 && diff < 1000 * 60 * 60 * 24 * 3
   }
 
   function isOverdue(dueDate: Date) {
-    return new Date(dueDate).getTime() < Date.now()
+    return new Date(dueDate).getTime() < now
   }
 
   return (

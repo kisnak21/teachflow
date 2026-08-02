@@ -12,27 +12,28 @@ import {
 import { Paperclip } from 'lucide-react'
 
 async function getClassAssignments(classId: string) {
-  return db.assignment.findMany({
+  const assignments = await db.assignment.findMany({
     where: {
       classes: { some: { classId } },
     },
     include: { attachments: true },
     orderBy: { dueDate: 'asc' },
   })
+  const now = new Date().getTime()
+
+  return assignments.map((assignment) => {
+    const diff = new Date(assignment.dueDate).getTime() - now
+    return {
+      ...assignment,
+      isOverdue: diff < 0,
+      isDueSoon: diff > 0 && diff < 1000 * 60 * 60 * 24 * 3,
+    }
+  })
 }
 
 export default async function StudentAssignmentsPage() {
   const session = await requireStudent()
   const assignments = await getClassAssignments(session.classId)
-
-  function isDueSoon(dueDate: Date) {
-    const diff = new Date(dueDate).getTime() - Date.now()
-    return diff > 0 && diff < 1000 * 60 * 60 * 24 * 3
-  }
-
-  function isOverdue(dueDate: Date) {
-    return new Date(dueDate).getTime() < Date.now()
-  }
 
   return (
     <div className="space-y-6">
@@ -82,9 +83,9 @@ export default async function StudentAssignmentsPage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    {isOverdue(assignment.dueDate) ? (
+                    {assignment.isOverdue ? (
                       <Badge variant="destructive">Overdue</Badge>
-                    ) : isDueSoon(assignment.dueDate) ? (
+                    ) : assignment.isDueSoon ? (
                       <Badge
                         variant="outline"
                         className="text-yellow-600 border-yellow-600"

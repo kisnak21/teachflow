@@ -9,6 +9,7 @@ export interface StudentSession {
   id: string
   classId: string
   role: "student"
+  name: string
 }
 
 export async function requireTeacher(): Promise<string> {
@@ -27,7 +28,12 @@ export async function requireStudent(): Promise<StudentSession> {
   if (!session.user.classId) {
     throw new Error("Student has no class")
   }
-  return { id: session.user.id, classId: session.user.classId, role: "student" }
+  return {
+    id: session.user.id,
+    classId: session.user.classId,
+    role: "student",
+    name: session.user.name ?? "",
+  }
 }
 
 export async function getSession(): Promise<TeacherSession | StudentSession> {
@@ -38,6 +44,7 @@ export async function getSession(): Promise<TeacherSession | StudentSession> {
       id: session.user.id,
       classId: session.user.classId ?? "",
       role: "student",
+      name: session.user.name ?? "",
     }
   }
   return { id: session.user.id, role: "teacher" }

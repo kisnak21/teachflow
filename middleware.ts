@@ -1,6 +1,12 @@
 import NextAuth from 'next-auth'
 import { NextResponse } from 'next/server'
 import { authConfig } from './auth.config'
+import {
+  isStudentAuthPage,
+  isStudentRoute,
+  isTeacherAuthPage,
+  isTeacherRoute,
+} from './lib/routes'
 
 const { auth } = NextAuth(authConfig)
 
@@ -9,27 +15,14 @@ export default auth((req) => {
   const role = req.auth?.user?.role
   const pathname = req.nextUrl.pathname
 
-  const isTeacherAuthPage =
-    pathname.startsWith('/login') || pathname.startsWith('/register')
-  const isStudentAuthPage = pathname.startsWith('/student/login')
+  const isTeacherPage = isTeacherAuthPage(pathname)
+  const isStudentPage = isStudentAuthPage(pathname)
 
-  const isTeacherRoute = [
-    '/dashboard',
-    '/classes',
-    '/students',
-    '/attendance',
-    '/assignments',
-    '/lesson-plans',
-    '/analytics',
-    '/settings',
-  ].some((p) => pathname.startsWith(p))
-
-  const isStudentRoute =
-    (pathname.startsWith('/student/') || pathname === '/student') &&
-    !isStudentAuthPage
+  const onTeacherRoute = isTeacherRoute(pathname)
+  const onStudentRoute = isStudentRoute(pathname)
 
   // Teacher route protection
-  if (isTeacherRoute) {
+  if (onTeacherRoute) {
     if (!isLoggedIn) {
       return NextResponse.redirect(new URL('/login', req.nextUrl))
     }
@@ -39,7 +32,7 @@ export default auth((req) => {
   }
 
   // Student route protection
-  if (isStudentRoute) {
+  if (onStudentRoute) {
     if (!isLoggedIn) {
       return NextResponse.redirect(new URL('/student/login', req.nextUrl))
     }
@@ -49,11 +42,11 @@ export default auth((req) => {
   }
 
   // Redirect logged-in users away from auth pages
-  if (isTeacherAuthPage && isLoggedIn && role === 'teacher') {
+  if (isTeacherPage && isLoggedIn && role === 'teacher') {
     return NextResponse.redirect(new URL('/dashboard', req.nextUrl))
   }
 
-  if (isStudentAuthPage && isLoggedIn && role === 'student') {
+  if (isStudentPage && isLoggedIn && role === 'student') {
     return NextResponse.redirect(new URL('/student/dashboard', req.nextUrl))
   }
 

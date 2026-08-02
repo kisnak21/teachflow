@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -20,6 +20,7 @@ interface Assignment {
   title: string
   description: string | null
   dueDate: Date
+  status: 'overdue' | 'dueSoon' | 'upcoming'
   classes: {
     classId: string
     class: { id: string; name: string }
@@ -38,17 +39,6 @@ export function AssignmentList({ assignments, classes }: Props) {
   async function handleDelete(id: string, title: string) {
     if (!confirm(`Delete "${title}"? This cannot be undone.`)) return
     await deleteAssignment(id)
-  }
-
-  const now = useMemo(() => Date.now(), [])
-
-  function isDueSoon(dueDate: Date) {
-    const diff = new Date(dueDate).getTime() - now
-    return diff > 0 && diff < 1000 * 60 * 60 * 24 * 3
-  }
-
-  function isOverdue(dueDate: Date) {
-    return new Date(dueDate).getTime() < now
   }
 
   return (
@@ -96,9 +86,9 @@ export function AssignmentList({ assignments, classes }: Props) {
                   {new Date(assignment.dueDate).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
-                  {isOverdue(assignment.dueDate) ? (
+                  {assignment.status === 'overdue' ? (
                     <Badge variant="destructive">Overdue</Badge>
-                  ) : isDueSoon(assignment.dueDate) ? (
+                  ) : assignment.status === 'dueSoon' ? (
                     <Badge
                       variant="outline"
                       className="text-yellow-600 border-yellow-600"

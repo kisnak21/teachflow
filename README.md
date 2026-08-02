@@ -8,6 +8,7 @@ A full-stack SaaS application for teachers to manage classes, students, attendan
 - **Styling** — Tailwind CSS v4 + shadcn/ui
 - **Database** — PostgreSQL (Neon) + Prisma 7
 - **Auth** — Auth.js v5 (multi-role: teacher + student)
+- **Email** — Resend (password reset)
 - **AI** — Groq API (GPT OSS 120B)
 - **File Storage** — Uploadthing
 - **Deployment** — Vercel
@@ -40,6 +41,7 @@ A full-stack SaaS application for teachers to manage classes, students, attendan
 - PostgreSQL database (Neon recommended)
 - Groq API key — free tier at [console.groq.com](https://console.groq.com)
 - Uploadthing account — free tier at [uploadthing.com](https://uploadthing.com)
+- Resend account — free tier at [resend.com](https://resend.com) (password reset emails)
 
 ### Setup
 
@@ -56,7 +58,13 @@ DATABASE_URL="postgresql://..."
 AUTH_SECRET="your-auth-secret"
 GROQ_API_KEY="your-groq-api-key"
 UPLOADTHING_TOKEN="your-uploadthing-token"
+RESEND_API_KEY="your-resend-api-key"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+# RESEND_FROM_EMAIL="TeachFlow <no-reply@yourdomain.com>"
 ```
+
+If `RESEND_API_KEY` is unset, the app runs in dev mode and prints the password
+reset link to the server console instead of sending an email.
 
 ```bash
 npx prisma db push
@@ -66,7 +74,9 @@ npm run dev
 
 ## Deployment
 
-Vercel — add `DATABASE_URL`, `AUTH_SECRET`, `GROQ_API_KEY`, `UPLOADTHING_TOKEN` as environment variables. Build script handles `prisma generate` automatically.
+Vercel — add `DATABASE_URL`, `AUTH_SECRET`, `GROQ_API_KEY`, `UPLOADTHING_TOKEN`,
+`RESEND_API_KEY`, and `NEXT_PUBLIC_APP_URL` as environment variables. Build script
+handles `prisma generate` automatically.
 
 ## Known Limitations
 

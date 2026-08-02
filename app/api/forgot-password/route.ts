@@ -53,9 +53,12 @@ export async function POST(req: NextRequest) {
         `,
       })
     } else {
-      console.log(
-        `[DEV] RESEND_API_KEY not set — password reset link: ${resetUrl}`
+      console.error(
+        "[forgot-password] RESEND_API_KEY is not set — reset email was NOT sent."
       )
+      if (process.env.NODE_ENV !== "production") {
+        console.log(`[DEV] Password reset link: ${resetUrl}`)
+      }
     }
 
     return NextResponse.json({ message: "If the email exists, a reset link has been sent." })

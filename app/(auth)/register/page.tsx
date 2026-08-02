@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { GraduationCap } from "lucide-react"
@@ -38,7 +39,19 @@ export default function RegisterPage() {
       return
     }
 
-    router.push("/login")
+    // Auto sign-in
+    const result = await signIn("teacher", {
+      email,
+      password,
+      redirect: false,
+    })
+
+    if (result?.error) {
+      router.push("/login")
+    } else {
+      router.push("/dashboard")
+      router.refresh()
+    }
   }
 
   return (

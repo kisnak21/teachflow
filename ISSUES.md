@@ -1,102 +1,73 @@
 # TeachFlow — Issue Tracking
 
-> Generated: 2026-07-17
+> Last updated: 2026-08-02
+
+---
+
+## ✅ Resolved
+
+- **[x] ISSUE-001** — `role` added to User model + migration + removed hardcoded role (commit `032b5f1`)
+- **[x] ISSUE-003** — `DATABASE_URL` validated in `lib/db.ts` (commit `aed2ea2`)
+- **[x] ISSUE-004** — human-friendly 6-char access codes (commit `5634093`)
+- **[x] ISSUE-005** — forgot/reset password flow; now sends email via **Resend** with dev fallback (commits `d3f211e`, `5bb3119`)
+- **[x] ISSUE-006** — vitest setup; tests for validations + route helpers (commits `ff08f32`, Fase 5)
+- **[x] ISSUE-007** — rate limiting on auth/register/reset endpoints (commits `e00c465`, `1874ee3`)
+- **[x] ISSUE-008** — per-segment error/loading boundaries for `/attendance`, `/students`, `/analytics`
+- **[x] ISSUE-011** — `GROQ_API_KEY` validated at init in `lib/groq.ts`
+- **[x] ISSUE-013** — route constants extracted to `lib/routes.ts`, used in `middleware.ts`
+- **[x] ISSUE-014** — audited Next.js 16 docs; `next lint` removed → `eslint .`, middleware/`proxy` rename deferred
+- **[x] NEW: Ownership (IDOR)** — all server actions verify teacher owns target class/assignment/lesson-plan/attachment before mutate; added `requireTeacher()`/`requireStudent()` helpers in `lib/auth-helpers.ts` (commit `76ae3e9`)
 
 ---
 
 ## 🔴 Critical (P0)
 
-### [ ] ISSUE-001: `role` field missing from User model
-**Impact:** Auth returns hardcoded `role: 'teacher'`, no DB distinction for admin/guru.
-**Fix:** Add `role String @default("teacher")` to `prisma/schema.prisma` → run migration.
-**Files:** `prisma/schema.prisma`, `auth.ts` (remove hardcoded role)
-
-### [ ] ISSUE-002: Student login uses Student ID as session user ID (inconsistent)
-**Impact:** `session.user.id` points to `Student` table for students, `User` table for teachers. Breaks type safety and future queries.
-**Fix Options:**
-- A: Create `User` record for each student (link via `studentId`)
-- B: Separate session types with explicit type guards in middleware
-**Files:** `auth.ts`, `auth.config.ts`, `middleware.ts`, `lib/db.ts`
-
-### [ ] ISSUE-003: `DATABASE_URL` non-null assertion crashes app silently
-**Impact:** `lib/db.ts` uses `process.env.DATABASE_URL!` — throws cryptic error if unset.
-**Fix:** Validate at startup, throw clear error.
-**Files:** `lib/db.ts`
+### [ ] ISSUE-002: Student session ID is a `Student.id`, teacher session ID is a `User.id`
+**Impact:** `session.user.id` points at different tables per role; type safety gap.
+**Decision:** Keep current model (Option B) — role guards via `lib/auth-helpers.ts` everywhere. No migration planned.
+**Status:** Mitigated. Revisit only if a shared user table becomes required.
 
 ---
 
 ## 🟡 High (P1)
 
-### [ ] ISSUE-004: Class access codes are CUIDs (unfriendly)
-**Impact:** `accessCode @default(cuid())` → `clh4x9...` not human-readable 4-6 digit codes.
-**Fix:** Generate 6-char alphanumeric on create, or add `@default(dbgenerated("..."))` with custom function.
-**Files:** `prisma/schema.prisma`, `lib/actions/class.actions.ts`
+### [ ] ISSUE-009: Middleware type safety gaps
+**Status:** `types/next-auth.d.ts` extended (role/classId). Residual risk: `req.auth?.user?.role` still unguarded in `middleware.ts`.
 
-### [ ] ISSUE-005: No password reset / forgot password flow
-**Impact:** Users locked out permanently if forgot password.
-**Fix:** Add token-based reset via email (Nodemailer/Resend) + `/forgot-password` + `/reset-password` routes.
-**Files:** `auth.ts`, `app/(auth)/`, new API routes
-
-### [ ] ISSUE-006: Zero tests
-**Impact:** 87 TypeScript files, 0 test coverage. High regression risk.
-**Fix:** Add Vitest/Jest + Playwright for auth flow + critical server actions.
-**Files:** `package.json`, new `tests/` directory
-
-### [ ] ISSUE-007: No rate limiting on auth endpoints
-**Impact:** Brute-force login possible on `/api/auth/...`
-**Fix:** `next-rate-limit` or Upstash Redis on credentials provider.
-**Files:** `auth.ts`, middleware, `package.json`
+### [ ] ISSUE-010: `bcryptjs` not Edge-compatible
+**Status:** Not exercised today (bcrypt only in Node runtime via `auth.ts` + API routes). Revisit if middleware moves to Edge.
 
 ---
 
 ## 🟢 Medium (P2)
 
-### [ ] ISSUE-008: Single global error/loading boundaries
-**Impact:** One `error.tsx` and `loading.tsx` for entire dashboard group.
-**Fix:** Add per-segment boundaries (`(dashboard)/attendance/error.tsx`, etc.)
-**Files:** `app/(dashboard)/*/error.tsx`, `loading.tsx`
+### [ ] ISSUE-015: Email sender not verified for production
+**Impact:** Resend `from` defaults to `onboarding@resend.dev`; production domain must be verified + `RESEND_FROM_EMAIL` set.
+**Fix:** Verify domain in Resend dashboard, set `RESEND_FROM_EMAIL`, `RESEND_API_KEY` in prod env.
 
-### [ ] ISSUE-009: Middleware type safety gaps
-**Impact:** `req.auth?.user?.role` accessed without type guards.
-**Fix:** Extend `NextAuth` types in `types/next-auth.d.ts` + narrow in middleware.
-**Files:** `types/next-auth.d.ts`, `middleware.ts`
-
-### [ ] ISSUE-010: `bcryptjs` not Edge-compatible
-**Impact:** Will fail if middleware ever runs on Edge runtime.
-**Fix:** Switch to `bcrypt-edge` or `bcryptjs` with `edge: true` config.
-**Files:** `auth.ts`, `package.json`
+### [ ] ISSUE-016: `middleware.ts` deprecated → `proxy.ts`
+**Impact:** Next.js 16 deprecates `middleware` filename and `middleware` export (renamed to `proxy`).
+**Fix:** Rename file + export to `proxy` on next Next.js minor upgrade.
 
 ---
 
 ## 🔵 Low / Quick Wins (P3)
 
-### [ ] ISSUE-011: Verify `GROQ_API_KEY` in `.env` for AI lesson generator
-**Impact:** AI feature fails silently without key.
-**Fix:** Check `.env` has `GROQ_API_KEY=sk_...`
-
 ### [ ] ISSUE-012: README setup steps incomplete
-**Impact:** New contributors miss `prisma generate` + `DATABASE_URL` steps.
-**Fix:** Document full setup: `.env` → `npm i` → `prisma generate` → `npm run dev`
+**Status:** Partially updated. Missing new env vars (`RESEND_API_KEY`, `NEXT_PUBLIC_APP_URL`, `RESEND_FROM_EMAIL`).
 
-### [ ] ISSUE-013: Extract route constants from middleware
-**Impact:** Route arrays duplicated/hardcoded in `middleware.ts`.
-**Fix:** Move to `lib/constants.ts` or `lib/routes.ts`.
-
-### [ ] ISSUE-014: Check Next.js 16 / React 19 deprecations
-**Impact:** Running on pre-release versions; breaking changes likely.
-**Fix:** Read `node_modules/next/dist/docs/` + follow upgrade guide.
+### [ ] ISSUE-017: `components/assignments/assignment-list.tsx` — `Date.now()` in `useMemo` triggers `react-hooks/purity`
+**Fix:** Pass `now` as prop from server page or compute status server-side (same pattern as student assignments page).
 
 ---
 
 ## 📋 Suggested Work Order
 
-1. **ISSUE-001** → migration first (blocks other auth fixes)
-2. **ISSUE-003** → quick fix, prevents prod crash
-3. **ISSUE-002** → decide approach A vs B, then implement
-4. **ISSUE-004** → UX improvement, low risk
-5. **ISSUE-007** → security, easy with Upstash free tier
-6. **ISSUE-006** → start with auth integration tests
-7. Remaining by priority
+1. **ISSUE-015** → verify Resend domain, set prod env vars
+2. **ISSUE-012** → README env docs
+3. **ISSUE-017** → purity lint fix
+4. **ISSUE-016** → `proxy.ts` rename at next upgrade
+5. **ISSUE-009** → strict role guard in middleware
 
 ---
 

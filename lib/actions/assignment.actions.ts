@@ -8,7 +8,7 @@ import { requireTeacher } from "@/lib/auth-helpers"
 export async function getAssignments() {
   const teacherId = await requireTeacher()
 
-  return db.assignment.findMany({
+  const assignments = await db.assignment.findMany({
     where: { teacherId },
     include: {
       classes: {
@@ -17,6 +17,14 @@ export async function getAssignments() {
       attachments: true,
     },
     orderBy: { dueDate: "asc" },
+  })
+
+  const now = new Date().getTime()
+  return assignments.map((assignment) => {
+    const diff = new Date(assignment.dueDate).getTime() - now
+    const status: "overdue" | "dueSoon" | "upcoming" =
+      diff < 0 ? "overdue" : diff < 1000 * 60 * 60 * 24 * 3 ? "dueSoon" : "upcoming"
+    return { ...assignment, status }
   })
 }
 

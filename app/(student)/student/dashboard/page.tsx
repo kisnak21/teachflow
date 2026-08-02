@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { requireStudent } from '@/lib/auth-helpers'
 import { db } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CalendarCheck, ClipboardList, User } from 'lucide-react'
@@ -33,9 +33,9 @@ async function getStudentData(studentId: string, classId: string) {
 }
 
 export default async function StudentDashboardPage() {
-  const session = await auth()
+  const session = await requireStudent()
   const { student, attendanceRate, totalAttendance, assignments } =
-    await getStudentData(session!.user.id, session!.user.classId!)
+    await getStudentData(session.id, session.classId)
 
   return (
     <div className="space-y-6">

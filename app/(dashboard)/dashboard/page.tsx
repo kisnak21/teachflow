@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BookOpen, Users, CalendarCheck, ClipboardList } from 'lucide-react'
-import { auth } from '@/auth'
+import { getSession } from '@/lib/auth-helpers'
 import { db } from '@/lib/db'
 
 async function getDashboardStats(teacherId: string) {
@@ -57,9 +57,8 @@ async function getDashboardStats(teacherId: string) {
 }
 
 export default async function DashboardPage() {
-  const session = await auth()
-  console.log('SESSION ROLE:', session?.user?.role)
-  const stats = await getDashboardStats(session!.user!.id!)
+  const session = await getSession()
+  const stats = await getDashboardStats(session.id)
 
   const attendanceDisplay =
     stats.attendanceRate !== null ? `${stats.attendanceRate}%` : '—'

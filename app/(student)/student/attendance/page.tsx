@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { requireStudent } from '@/lib/auth-helpers'
 import { db } from '@/lib/db'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -19,8 +19,8 @@ async function getStudentAttendance(studentId: string) {
 }
 
 export default async function StudentAttendancePage() {
-  const session = await auth()
-  const records = await getStudentAttendance(session!.user.id)
+  const session = await requireStudent()
+  const records = await getStudentAttendance(session.id)
 
   const presentCount = records.filter((r) => r.status === 'PRESENT').length
   const absentCount = records.filter((r) => r.status === 'ABSENT').length

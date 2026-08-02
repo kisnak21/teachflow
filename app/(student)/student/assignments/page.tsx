@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { requireStudent } from '@/lib/auth-helpers'
 import { db } from '@/lib/db'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -22,8 +22,8 @@ async function getClassAssignments(classId: string) {
 }
 
 export default async function StudentAssignmentsPage() {
-  const session = await auth()
-  const assignments = await getClassAssignments(session!.user.classId!)
+  const session = await requireStudent()
+  const assignments = await getClassAssignments(session.classId)
 
   function isDueSoon(dueDate: Date) {
     const diff = new Date(dueDate).getTime() - Date.now()

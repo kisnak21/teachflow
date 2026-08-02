@@ -1,9 +1,19 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { authRateLimit } from "@/lib/rate-limit"
 import bcrypt from "bcryptjs"
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    try {
+      authRateLimit.checkNext(req, 5)
+    } catch {
+      return NextResponse.json(
+        { error: "Too many password reset attempts. Try again later." },
+        { status: 429 }
+      )
+    }
+
     const { token, password } = await req.json()
 
     if (!token || !password) {

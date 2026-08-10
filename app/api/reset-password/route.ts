@@ -24,6 +24,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 })
     }
 
+    // Clean up expired tokens to prevent table bloat
+    await db.resetToken.deleteMany({ where: { expiresAt: { lt: new Date() } } })
+
     const resetToken = await db.resetToken.findUnique({ where: { token } })
 
     if (!resetToken || resetToken.expiresAt < new Date()) {

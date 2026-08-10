@@ -1,6 +1,7 @@
 "use server"
 
 import { db } from "@/lib/db"
+import { Prisma } from "@prisma/client"
 import { revalidatePath } from "next/cache"
 import { studentSchema } from "@/lib/validations"
 import { requireTeacher } from "@/lib/auth-helpers"
@@ -36,13 +37,25 @@ export async function createStudent(data: {
   })
   if (!cls) throw new Error("Class not found")
 
-  await db.student.create({
-    data: {
-      name: parsed.data.name,
-      studentNumber: parsed.data.studentNumber,
-      classId: parsed.data.classId,
-    },
-  })
+  try {
+    await db.student.create({
+      data: {
+        name: parsed.data.name,
+        studentNumber: parsed.data.studentNumber,
+        classId: parsed.data.classId,
+      },
+    })
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new Error(
+        "A student with this student number already exists in this class"
+      )
+    }
+    throw error
+  }
 
   revalidatePath("/students")
 }
@@ -74,14 +87,26 @@ export async function updateStudent(
   })
   if (!targetClass) throw new Error("Class not found")
 
-  await db.student.update({
-    where: { id },
-    data: {
-      name: parsed.data.name,
-      studentNumber: parsed.data.studentNumber,
-      classId: parsed.data.classId,
-    },
-  })
+  try {
+    await db.student.update({
+      where: { id },
+      data: {
+        name: parsed.data.name,
+        studentNumber: parsed.data.studentNumber,
+        classId: parsed.data.classId,
+      },
+    })
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new Error(
+        "A student with this student number already exists in this class"
+      )
+    }
+    throw error
+  }
 
   revalidatePath("/students")
 }

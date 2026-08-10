@@ -19,7 +19,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const bcrypt = await import('bcryptjs')
 
         const user = await db.user.findUnique({
-          where: { email: credentials.email as string },
+          where: { email: (credentials.email as string).toLowerCase() },
         })
 
         if (!user) return null
@@ -52,7 +52,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const { db } = await import('@/lib/db')
 
         const cls = await db.class.findUnique({
-          where: { accessCode: credentials.accessCode as string },
+          where: { accessCode: (credentials.accessCode as string).toUpperCase() },
         })
 
         if (!cls) return null

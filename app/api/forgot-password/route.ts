@@ -19,22 +19,26 @@ export async function POST(req: NextRequest) {
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 })
     }
+    const normalizedEmail = email.toLowerCase()
 
-    const user = await db.user.findUnique({ where: { email } })
+    const user = await db.user.findUnique({ where: { email: normalizedEmail } })
     if (!user) {
       // Return success even if not found — prevent email enumeration
       return NextResponse.json({ message: "If the email exists, a reset link has been sent." })
     }
 
     // Delete any existing tokens for this email
-    await db.resetToken.deleteMany({ where: { email } })
+    await db.resetToken.deleteMany({ where: { email: normalizedEmail } })
+
+    // Clean up expired tokens to prevent table bloat
+    await db.resetToken.deleteMany({ where: { expiresAt: { lt: new Date() } } })
 
     // Generate token
     const token = crypto.randomBytes(32).toString("hex")
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
 
     await db.resetToken.create({
-      data: { email, token, expiresAt },
+      data: { email: normalizedEmail, token, expiresAt },
     })
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? req.nextUrl.origin

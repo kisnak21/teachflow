@@ -39,6 +39,7 @@ export function ImportStudentsDialog() {
   const [preview, setPreview] = useState<ImportPreviewRow[] | null>(null)
   const [error, setError] = useState("")
   const [successCount, setSuccessCount] = useState<number | null>(null)
+  const [skippedCount, setSkippedCount] = useState(0)
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -73,6 +74,7 @@ export function ImportStudentsDialog() {
     try {
       const result = await confirmStudentImport(preview)
       setSuccessCount(result.imported)
+      setSkippedCount(result.skipped)
       setPreview(null)
       router.refresh()
     } catch (err: unknown) {
@@ -86,6 +88,7 @@ export function ImportStudentsDialog() {
     setPreview(null)
     setError("")
     setSuccessCount(null)
+    setSkippedCount(0)
   }
 
   const validCount = preview?.filter((r) => r.status === "valid").length ?? 0
@@ -246,6 +249,12 @@ export function ImportStudentsDialog() {
                   {successCount} student{successCount !== 1 ? "s" : ""}{" "}
                   imported successfully
                 </p>
+                {skippedCount > 0 && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {skippedCount} duplicate{skippedCount !== 1 ? "s" : ""}{" "}
+                    skipped
+                  </p>
+                )}
               </div>
               <Button size="sm" onClick={() => setOpen(false)}>
                 Done

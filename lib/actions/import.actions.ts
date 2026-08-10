@@ -76,8 +76,27 @@ export async function confirmStudentImport(rows: ImportPreviewRow[]) {
     throw new Error("Unauthorized class write")
   }
 
+  const existing = await db.student.findMany({
+    where: { classId: { in: classIds } },
+    select: { studentNumber: true, classId: true },
+  })
+  const existingKeys = new Set(
+    existing.map((s) => `${s.studentNumber.trim()}|${s.classId}`)
+  )
+
+  const uniqueRows = validRows.filter((row) => {
+    const key = `${row.studentNumber.trim()}|${row.classId!}`
+    if (existingKeys.has(key)) return false
+    existingKeys.add(key)
+    return true
+  })
+
+  if (uniqueRows.length === 0) {
+    return { imported: 0, skipped: validRows.length }
+  }
+
   await db.student.createMany({
-    data: validRows.map((row) => ({
+    data: uniqueRows.map((row) => ({
       name: row.name.trim(),
       studentNumber: row.studentNumber.trim(),
       classId: row.classId!,
@@ -86,5 +105,5 @@ export async function confirmStudentImport(rows: ImportPreviewRow[]) {
 
   revalidatePath("/students")
 
-  return { imported: validRows.length }
+  return { imported: uniqueRows.length, skipped: validRows.length - uniqueRows.length }
 }

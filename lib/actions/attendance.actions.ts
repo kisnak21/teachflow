@@ -47,11 +47,24 @@ export async function saveAttendance(
     }
 
     const classId = record[0].classId
+    if (!record.every(r => r.classId === classId)) {
+        throw new Error("All attendance records must belong to the same class")
+    }
+
     const cls = await db.class.findFirst({
         where: { id: classId, teacherId },
         select: { id: true },
     })
     if (!cls) throw new Error("Class not found")
+
+    const studentIds = Array.from(new Set(record.map(r => r.studentId)))
+    const studentsInClass = await db.student.findMany({
+        where: { id: { in: studentIds }, classId },
+        select: { id: true },
+    })
+    if (studentsInClass.length !== studentIds.length) {
+        throw new Error("One or more students are not in this class")
+    }
 
     const date = new Date(record[0].date)
     const nextDay = new Date(date)

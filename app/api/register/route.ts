@@ -26,9 +26,10 @@ export async function POST(req: NextRequest) {
     }
 
     const { name, email, password } = parsed.data
+    const normalizedEmail = email.toLowerCase()
 
     const existing = await db.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     })
 
     if (existing) {
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
     await db.user.create({
       data: {
         name,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
       },
     })

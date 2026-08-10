@@ -47,6 +47,8 @@ model Student {
   classId       String
   class         Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
   attendances   Attendance[]
+
+  @@unique([studentNumber, classId])
 }
 
 model Attendance {

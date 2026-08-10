@@ -15,6 +15,9 @@ export const ourFileRouter = {
     .middleware(async () => {
       const session = await auth()
       if (!session?.user?.id) throw new UploadThingError("Unauthorized")
+      if (session.user.role !== "teacher") {
+        throw new UploadThingError("Forbidden")
+      }
 
       return { userId: session.user.id }
     })

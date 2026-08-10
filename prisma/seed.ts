@@ -9,10 +9,6 @@ if (!connectionString) {
 const adapter = new PrismaPg({ connectionString })
 const db = new PrismaClient({ adapter })
 
-function generateAccessCode(): string {
-  return Math.random().toString(36).slice(2, 8).toUpperCase()
-}
-
 async function main() {
   const password = await bcrypt.hash('password123', 12)
 
@@ -36,9 +32,19 @@ async function main() {
   await db.class.deleteMany({ where: { teacherId: teacher.id } })
 
   const classDefs = [
-    { name: 'Matematika', level: 'X', students: 8 },
-    { name: 'Bahasa Indonesia', level: 'XI', students: 8 },
-    { name: 'Informatika', level: 'XI RPL', students: 8 },
+    { name: 'Matematika', level: 'X', accessCode: 'MATH10', students: 8 },
+    {
+      name: 'Bahasa Indonesia',
+      level: 'XI',
+      accessCode: 'BIXI11',
+      students: 8,
+    },
+    {
+      name: 'Informatika',
+      level: 'XI RPL',
+      accessCode: 'INFXI12',
+      students: 8,
+    },
   ]
 
   const now = new Date()
@@ -49,7 +55,7 @@ async function main() {
       data: {
         name: def.name,
         level: def.level,
-        accessCode: generateAccessCode(),
+        accessCode: def.accessCode,
         teacherId: teacher.id,
         students: {
           create: Array.from({ length: def.students }, (_, j) => ({

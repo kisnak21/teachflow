@@ -1,6 +1,6 @@
 'use server'
 
-import { groq } from '@/lib/groq'
+import { getGroq } from '@/lib/groq'
 import { requireTeacher } from '@/lib/auth-helpers'
 import { z } from 'zod'
 
@@ -59,7 +59,7 @@ Respond ONLY with a valid JSON object in this exact format, no other text:
   "homework": ["homework idea 1", "homework idea 2"]
 }`
 
-  const completion = await groq.chat.completions.create({
+  const completion = await getGroq().chat.completions.create({
     model: 'openai/gpt-oss-120b',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.7,

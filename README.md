@@ -67,9 +67,17 @@ If `RESEND_API_KEY` is unset, the app runs in dev mode and prints the password
 reset link to the server console instead of sending an email.
 
 ```bash
-npx prisma db push
+npx prisma migrate deploy
 npx prisma generate
 npm run dev
+```
+
+Optional — seed demo data (teacher, classes, students, attendance):
+
+```bash
+npm run db:seed
+# Teacher login: teacher@teachflow.app / password123
+# Class access codes are printed in the seed output
 ```
 
 ## Deployment

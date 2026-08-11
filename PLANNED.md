@@ -1,7 +1,7 @@
 # TeachFlow — Planned Features
 
-> Status: Fitur 1 **sedang dikerjakan** (dimulai 2026-08-11, scope final s.d.
-> bawah). Fitur 2 masih **proposed** — dibahas setelah fitur 1 selesai.
+> Status: Fitur 1 **selesai** (2026-08-11). Fitur 2 masih **proposed** —
+> dibahas setelah fitur 1 selesai.
 
 ---
 
@@ -61,13 +61,13 @@ model Submission {
 
 ### Langkah Kerja (urutan commit)
 
-1. [x] Update scope final di `PLANNED.md` (commit ini).
-2. [ ] Migration `add_submission` + relasi di `Assignment`.
-3. [ ] `lib/actions/submission.actions.ts` (submit, delete, grade, overview).
-4. [ ] Uploadthing router baru `submissionUploader` (guru & siswa, file count 1/task).
-5. [ ] UI guru: dialog "Submissions" + modal grading + export Excel.
-6. [ ] UI siswa: submit/status/nilai di halaman assignment.
-7. [ ] E2E: submit → grade → lihat nilai.
+1. [x] Update scope final di `PLANNED.md`.
+2. [x] Migration `add_submission` + relasi di `Assignment`.
+3. [x] `lib/actions/submission.actions.ts` (submit, delete, grade, overview).
+4. [x] Uploadthing router baru `submissionUploader` (guru & siswa, file count 1/task).
+5. [x] UI guru: dialog "Submissions" + modal grading + export Excel.
+6. [x] UI siswa: submit/status/nilai di halaman assignment.
+7. [x] E2E: submit → grade → lihat nilai (8 test lulus, upload test skip otomatis di CI).
 
 ---
 

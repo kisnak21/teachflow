@@ -10,13 +10,28 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Paperclip } from 'lucide-react'
+import { AssignmentSubmitButton } from '@/components/student/assignment-submit-button'
 
-async function getClassAssignments(classId: string) {
+async function getClassAssignments(classId: string, studentId: string) {
   const assignments = await db.assignment.findMany({
     where: {
       classes: { some: { classId } },
     },
-    include: { attachments: true },
+    include: {
+      attachments: true,
+      submissions: {
+        where: { studentId },
+        select: {
+          id: true,
+          fileUrl: true,
+          fileName: true,
+          note: true,
+          score: true,
+          feedback: true,
+          submittedAt: true,
+        },
+      },
+    },
     orderBy: { dueDate: 'asc' },
   })
   const now = new Date().getTime()
@@ -24,16 +39,21 @@ async function getClassAssignments(classId: string) {
   return assignments.map((assignment) => {
     const diff = new Date(assignment.dueDate).getTime() - now
     return {
-      ...assignment,
+      id: assignment.id,
+      title: assignment.title,
+      description: assignment.description,
+      dueDate: assignment.dueDate,
       isOverdue: diff < 0,
       isDueSoon: diff > 0 && diff < 1000 * 60 * 60 * 24 * 3,
+      attachments: assignment.attachments,
+      submission: assignment.submissions[0] ?? null,
     }
   })
 }
 
 export default async function StudentAssignmentsPage() {
   const session = await requireStudent()
-  const assignments = await getClassAssignments(session.classId)
+  const assignments = await getClassAssignments(session.classId, session.id)
 
   return (
     <div className="space-y-6">
@@ -60,6 +80,7 @@ export default async function StudentAssignmentsPage() {
                 <TableHead>Due Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Attachments</TableHead>
+                <TableHead>Submission</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -122,6 +143,13 @@ export default async function StudentAssignmentsPage() {
                         ))}
                       </div>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <AssignmentSubmitButton
+                      assignmentId={assignment.id}
+                      assignmentTitle={assignment.title}
+                      submission={assignment.submission}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

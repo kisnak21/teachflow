@@ -49,6 +49,7 @@ export function AttendanceClient({ classes }: Props) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleExportPDF() {
     if (!classId || !date) return
@@ -83,42 +84,53 @@ export function AttendanceClient({ classes }: Props) {
     if (!classId || !date) return
     setLoading(true)
     setSaved(false)
+    setError('')
     setSelected(new Set())
 
-    const [students, existing] = await Promise.all([
-      getStudents(classId),
-      getAttendance(classId, date),
-    ])
+    try {
+      const [students, existing] = await Promise.all([
+        getStudents(classId),
+        getAttendance(classId, date),
+      ])
 
-    const existingMap = new Map(existing.map((a) => [a.studentId, a.status]))
+      const existingMap = new Map(existing.map((a) => [a.studentId, a.status]))
 
-    setRecords(
-      students.map((s) => ({
-        studentId: s.id,
-        name: s.name,
-        studentNumber: s.studentNumber,
-        status: existingMap.get(s.id) ?? AttendanceStatus.PRESENT,
-      }))
-    )
-
-    setLoading(false)
+      setRecords(
+        students.map((s) => ({
+          studentId: s.id,
+          name: s.name,
+          studentNumber: s.studentNumber,
+          status: existingMap.get(s.id) ?? AttendanceStatus.PRESENT,
+        }))
+      )
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load attendance')
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleSave() {
     if (!records.length) return
     setSaving(true)
+    setError('')
+    setSaved(false)
 
-    await saveAttendance(
-      records.map((r) => ({
-        studentId: r.studentId,
-        classId,
-        date,
-        status: r.status,
-      }))
-    )
-
-    setSaving(false)
-    setSaved(true)
+    try {
+      await saveAttendance(
+        records.map((r) => ({
+          studentId: r.studentId,
+          classId,
+          date,
+          status: r.status,
+        }))
+      )
+      setSaved(true)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to save attendance')
+    } finally {
+      setSaving(false)
+    }
   }
 
   function updateStatus(studentId: string, status: AttendanceStatus) {
@@ -210,6 +222,11 @@ export function AttendanceClient({ classes }: Props) {
               </Button>
             </div>
           </CardHeader>
+          {error && (
+            <div className="px-6 pb-4">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
           <CardContent className="space-y-3">
             {/* Bulk actions */}
             <div className="flex items-center gap-3 pb-2 border-b">

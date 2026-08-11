@@ -1,17 +1,12 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Pencil, Trash2, ChevronDown, ChevronUp, Paperclip } from "lucide-react"
-import { deleteLessonPlan } from "@/lib/actions/lesson-plan.actions"
-import { EditLessonPlanDialog } from "./edit-lesson-plan-dialog"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Pencil, Trash2, ChevronDown, ChevronUp, Paperclip } from 'lucide-react'
+import { deleteLessonPlan } from '@/lib/actions/lesson-plan.actions'
+import { EditLessonPlanDialog } from './edit-lesson-plan-dialog'
 
 interface LessonPlan {
   id: string
@@ -34,14 +29,23 @@ interface Props {
 export function LessonPlanList({ lessonPlans, classes }: Props) {
   const [editPlan, setEditPlan] = useState<LessonPlan | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [error, setError] = useState('')
 
   async function handleDelete(id: string, title: string) {
     if (!confirm(`Delete "${title}"? This cannot be undone.`)) return
-    await deleteLessonPlan(id)
+    setError('')
+    try {
+      await deleteLessonPlan(id)
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to delete lesson plan'
+      )
+    }
   }
 
   return (
     <>
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="space-y-3">
         {lessonPlans.map((plan) => (
           <Card key={plan.id}>
@@ -93,13 +97,13 @@ export function LessonPlanList({ lessonPlans, classes }: Props) {
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
                     Objectives
                   </p>
-                  <p className="text-sm">{plan.objectives || "—"}</p>
+                  <p className="text-sm">{plan.objectives || '—'}</p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
                     Activities
                   </p>
-                  <p className="text-sm">{plan.activities || "—"}</p>
+                  <p className="text-sm">{plan.activities || '—'}</p>
                 </div>
                 {plan.assessment && (
                   <div>

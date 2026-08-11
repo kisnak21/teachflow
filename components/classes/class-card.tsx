@@ -24,6 +24,7 @@ export function ClassCard({ cls }: ClassCardProps) {
   const [editOpen, setEditOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [exportingRoster, setExportingRoster] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleExportRoster() {
     setExportingRoster(true)
@@ -52,7 +53,14 @@ export function ClassCard({ cls }: ClassCardProps) {
   async function handleDelete() {
     if (!confirm(`Delete "${cls.name}"? This cannot be undone.`)) return
     setDeleting(true)
-    await deleteClass(cls.id)
+    setError('')
+    try {
+      await deleteClass(cls.id)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete class')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   async function handleCopy() {
@@ -63,6 +71,7 @@ export function ClassCard({ cls }: ClassCardProps) {
 
   return (
     <>
+      {error && <p className="text-sm text-destructive mb-1">{error}</p>}
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">

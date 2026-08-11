@@ -35,14 +35,23 @@ interface Props {
 
 export function AssignmentList({ assignments, classes }: Props) {
   const [editAssignment, setEditAssignment] = useState<Assignment | null>(null)
+  const [error, setError] = useState('')
 
   async function handleDelete(id: string, title: string) {
     if (!confirm(`Delete "${title}"? This cannot be undone.`)) return
-    await deleteAssignment(id)
+    setError('')
+    try {
+      await deleteAssignment(id)
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to delete assignment'
+      )
+    }
   }
 
   return (
     <>
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="rounded-md border">
         <Table>
           <TableHeader>

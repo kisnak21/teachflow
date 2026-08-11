@@ -27,6 +27,12 @@
 .DS_Store
 *.pem
 
+# editor
+.vscode/
+
+# local design review artifacts
+/mockup/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

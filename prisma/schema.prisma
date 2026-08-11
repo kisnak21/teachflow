@@ -47,6 +47,7 @@ model Student {
   classId       String
   class         Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
   attendances   Attendance[]
+  submissions   Submission[]
 
   @@unique([studentNumber, classId])
 }
@@ -84,6 +85,7 @@ model Assignment {
   teacher     User              @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   classes     AssignmentClass[]
   attachments Attachment[]
+  submissions Submission[]
 }
 
 model AssignmentClass {
@@ -121,4 +123,21 @@ model Attachment {
   lessonPlanId String?
   assignment   Assignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   lessonPlan   LessonPlan? @relation(fields: [lessonPlanId], references: [id], onDelete: Cascade)
+}
+
+model Submission {
+  id           String     @id @default(cuid())
+  studentId    String
+  assignmentId String
+  fileUrl      String
+  fileName     String
+  note         String?
+  score        Int?
+  feedback     String?
+  submittedAt  DateTime   @default(now())
+  gradedAt     DateTime?
+  student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, assignmentId])
 }

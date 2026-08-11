@@ -116,6 +116,19 @@ async function main() {
     ],
   })
 
+  const seedAssignments = await db.assignment.findMany({
+    where: { teacherId: teacher.id },
+    orderBy: { dueDate: 'asc' },
+    select: { id: true },
+  })
+
+  await db.assignmentClass.createMany({
+    data: seedAssignments.map((a) => ({
+      assignmentId: a.id,
+      classId: classes[0].id,
+    })),
+  })
+
   await db.lessonPlan.create({
     data: {
       title: 'Pengenalan Pemrograman Web',

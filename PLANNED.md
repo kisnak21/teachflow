@@ -1,6 +1,7 @@
 # TeachFlow — Planned Features
 
-> Status: **proposed** — belum dimulai. Rencana dibuat 2026-08-11.
+> Status: Fitur 1 **sedang dikerjakan** (dimulai 2026-08-11, scope final s.d.
+> bawah). Fitur 2 masih **proposed** — dibahas setelah fitur 1 selesai.
 
 ---
 
@@ -12,20 +13,20 @@ Saat ini portal siswa _read-only_. Siswa bisa login, lihat dashboard, riwayat
 absensi, dan assignment, tapi belum bisa mengumpulkan tugas, dan guru belum
 bisa menilai. README mencatat ini sebagai deferred.
 
-### Scope (MVP)
+### Scope (FINAL — disepakati 2026-08-11)
 
-- **Submission** — siswa mengunggah file (PDF/gambar/Word, s.d. 16MB via
-  Uploadthing) untuk sebuah assignment.
-  - Ada relasi baru: `Submission` = `studentId + assignmentId + fileUrl + submittedAt`.
-  - Satu student satu submission per assignment (`@@unique([studentId, assignmentId])`)
-    → upload kedua = update (revisi).
-- **Grading** — guru memberi `score` (0–100) dan `feedback` pada submission.
-  - Status assignment: `not-submitted | submitted | graded`.
-- **UI guru** — di halaman assignment: toggle "Lihat Submission" → tabel
-  siswa + status + modal input nilai/feedback.
-- **UI siswa** — di halaman assignment siswa: tombol upload/submit, badge
-  status, tampilkan nilai + feedback dari guru.
-- **Statistik** — rerata nilai per assignment (bar chart kecil di analytics).
+| Poin               | Keputusan                                                                              |
+| ------------------ | -------------------------------------------------------------------------------------- |
+| Skala nilai        | Skor 0–100 + feedback (satu angka, bukan per-kriteria)                                 |
+| Jenis pengumpulan  | File (PDF/gambar/Word via Uploadthing) **+ catatan teks opsional**                     |
+| Revisi             | Timpa (1 submission per student per assignment, `@@unique([studentId, assignmentId])`) |
+| Tampilan guru      | Dialog "Submissions" di halaman assignment (tabel siswa + status + modal nilai)        |
+| Deadline           | Tidak memblokir upload; status assignment menampilkan keterlambatan via dueDate        |
+| Email saat dinilai | **Ditunda** (opsional fase 2 — infrastructure Resend sudah ada)                        |
+| Ekspor nilai       | Tombol export Excel di dialog guru (reuse `xlsx`)                                      |
+| Analytics          | Ditunda (fase 2) — tidak membesarkan scope MVP                                         |
+
+Status submission: `not-submitted | submitted | graded`.
 
 ### Pertimbangan Keamanan (standar proyek ini)
 
@@ -34,6 +35,8 @@ bisa menilai. README mencatat ini sebagai deferred.
 - Hanya file pembuat submission yang bisa dihapus/diubah.
 - Halaman ungraded submission tidak boleh menampilkan submission kelas lain
   (cek `classId` lewat `AssignmentClass`).
+- Revisi (resubmit) menghapus file lama di Uploadthing dan me-reset
+  `score/feedback` (harus dinilai ulang oleh guru).
 
 ### Skema Prisma (draft)
 
@@ -44,6 +47,7 @@ model Submission {
   assignmentId String
   fileUrl      String
   fileName     String
+  note         String?
   score        Int?       // null = belum dinilai
   feedback     String?
   submittedAt  DateTime   @default(now())
@@ -55,14 +59,15 @@ model Submission {
 }
 ```
 
-### Langkah Kerja
+### Langkah Kerja (urutan commit)
 
-1. Migration `add_submission`.
-2. `lib/actions/submission.actions.ts` (submit, delete, grade, list).
-3. Uploadthing router baru `submissionUploader` (guru & siswa, file count 1/task).
-4. UI guru (submission list + grading dialog) & UI siswa (submit + status).
-5. E2E: submit → grade → lihat nilai.
-6. Export: nilai assignment ke Excel (reuse `xlsx`) / PDF.
+1. [x] Update scope final di `PLANNED.md` (commit ini).
+2. [ ] Migration `add_submission` + relasi di `Assignment`.
+3. [ ] `lib/actions/submission.actions.ts` (submit, delete, grade, overview).
+4. [ ] Uploadthing router baru `submissionUploader` (guru & siswa, file count 1/task).
+5. [ ] UI guru: dialog "Submissions" + modal grading + export Excel.
+6. [ ] UI siswa: submit/status/nilai di halaman assignment.
+7. [ ] E2E: submit → grade → lihat nilai.
 
 ---
 

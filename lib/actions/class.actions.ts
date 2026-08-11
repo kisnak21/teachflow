@@ -1,9 +1,11 @@
-"use server"
+'use server'
 
-import { db } from "@/lib/db"
-import { requireTeacher } from "@/lib/auth-helpers"
-import { revalidatePath } from "next/cache"
-import { classSchema } from "@/lib/validations"
+import { db } from '@/lib/db'
+import { requireTeacher } from '@/lib/auth-helpers'
+import { revalidatePath } from 'next/cache'
+import { classSchema } from '@/lib/validations'
+import { generateAccessCode } from '@/lib/access-code'
+import { Prisma } from '@prisma/client'
 
 export async function getClasses() {
   const teacherId = await requireTeacher()
@@ -11,7 +13,7 @@ export async function getClasses() {
   return db.class.findMany({
     where: { teacherId: teacherId },
     include: { _count: { select: { students: true } } },
-    orderBy: [{ level: "asc" }, { name: "asc" }],
+    orderBy: [{ level: 'asc' }, { name: 'asc' }],
   })
 }
 
@@ -23,21 +25,28 @@ export async function createClass(data: { name: string; level: string }) {
     throw new Error(parsed.error.issues[0].message)
   }
 
-  await db.class.create({
-    data: {
-      name: parsed.data.name,
-      level: parsed.data.level,
-      teacherId: teacherId,
-      accessCode: generateAccessCode(),
-    },
-  })
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await db.class.create({
+        data: {
+          name: parsed.data.name,
+          level: parsed.data.level,
+          teacherId: teacherId,
+          accessCode: generateAccessCode(),
+        },
+      })
+      revalidatePath('/classes')
+      return
+    } catch (error) {
+      const isCollision =
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      if (isCollision) continue
+      throw error
+    }
+  }
 
-  revalidatePath("/classes")
-}
-
-/** Generate a human-readable 6-char alphanumeric access code */
-function generateAccessCode(): string {
-  return Math.random().toString(36).slice(2, 8).toUpperCase()
+  throw new Error('Failed to generate a unique access code, try again')
 }
 
 export async function updateClass(
@@ -59,7 +68,7 @@ export async function updateClass(
     },
   })
 
-  revalidatePath("/classes")
+  revalidatePath('/classes')
 }
 
 export async function deleteClass(id: string) {
@@ -69,5 +78,5 @@ export async function deleteClass(id: string) {
     where: { id, teacherId: teacherId },
   })
 
-  revalidatePath("/classes")
+  revalidatePath('/classes')
 }

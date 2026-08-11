@@ -1,27 +1,30 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { updateLessonPlan } from "@/lib/actions/lesson-plan.actions"
-import { UploadButton } from "@/lib/uploadthing"
-import { addAttachment, deleteAttachment } from "@/lib/actions/attachment.actions"
-import { Paperclip, X } from "lucide-react"
+} from '@/components/ui/select'
+import { updateLessonPlan } from '@/lib/actions/lesson-plan.actions'
+import { UploadButton } from '@/lib/uploadthing'
+import {
+  addAttachment,
+  deleteAttachment,
+} from '@/lib/actions/attachment.actions'
+import { Paperclip, X } from 'lucide-react'
 
 interface Props {
   plan: {
@@ -40,39 +43,51 @@ interface Props {
   onOpenChange: (open: boolean) => void
 }
 
-export function EditLessonPlanDialog({ plan, classes, open, onOpenChange }: Props) {
+export function EditLessonPlanDialog({
+  plan,
+  classes,
+  open,
+  onOpenChange,
+}: Props) {
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [error, setError] = useState('')
   const [form, setForm] = useState({
     title: plan.title,
     subject: plan.subject,
     objectives: plan.objectives,
     activities: plan.activities,
-    assessment: plan.assessment ?? "",
-    notes: plan.notes ?? "",
+    assessment: plan.assessment ?? '',
+    notes: plan.notes ?? '',
     classId: plan.classId,
   })
   const [attachments, setAttachments] = useState(plan.attachments)
-  const [uploadError, setUploadError] = useState("")
+  const [uploadError, setUploadError] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    setError("")
+    setError('')
 
     try {
       await updateLessonPlan(plan.id, form)
       onOpenChange(false)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong")
+      setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setLoading(false)
     }
   }
 
   async function handleDeleteAttachment(fileId: string) {
-    await deleteAttachment(fileId)
-    setAttachments((prev) => prev.filter((f) => f.id !== fileId))
+    try {
+      await deleteAttachment(fileId)
+      setAttachments((prev) => prev.filter((f) => f.id !== fileId))
+      setUploadError('')
+    } catch (err: unknown) {
+      setUploadError(
+        err instanceof Error ? err.message : 'Failed to delete attachment'
+      )
+    }
   }
 
   return (
@@ -187,27 +202,39 @@ export function EditLessonPlanDialog({ plan, classes, open, onOpenChange }: Prop
             <UploadButton
               endpoint="attachmentUploader"
               appearance={{
-                container: "w-full items-start",
+                container: 'w-full items-start',
                 button:
-                  "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium px-4 py-2 rounded-md h-9 ut-uploading:cursor-not-allowed ut-uploading:opacity-50",
-                allowedContent: "text-xs text-muted-foreground mt-1",
+                  'bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium px-4 py-2 rounded-md h-9 ut-uploading:cursor-not-allowed ut-uploading:opacity-50',
+                allowedContent: 'text-xs text-muted-foreground mt-1',
               }}
               content={{
-                button: "Upload File",
-                allowedContent: "PDF, Word, or Image — up to 16MB",
+                button: 'Upload File',
+                allowedContent: 'PDF, Word, or Image — up to 16MB',
               }}
               onClientUploadComplete={async (res) => {
-                setUploadError("")
+                setUploadError('')
                 for (const file of res) {
-                  await addAttachment({
-                    url: file.ufsUrl,
-                    name: file.name,
-                    lessonPlanId: plan.id,
-                  })
-                  setAttachments((prev) => [
-                    ...prev,
-                    { id: file.key, name: file.name, url: file.ufsUrl },
-                  ])
+                  try {
+                    const created = await addAttachment({
+                      url: file.ufsUrl,
+                      name: file.name,
+                      lessonPlanId: plan.id,
+                    })
+                    setAttachments((prev) => [
+                      ...prev,
+                      {
+                        id: created.id,
+                        name: created.name,
+                        url: created.url,
+                      },
+                    ])
+                  } catch (err: unknown) {
+                    setUploadError(
+                      err instanceof Error
+                        ? err.message
+                        : 'Failed to save attachment'
+                    )
+                  }
                 }
               }}
               onUploadError={(uploadErr: Error) => {
@@ -229,7 +256,7 @@ export function EditLessonPlanDialog({ plan, classes, open, onOpenChange }: Prop
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save"}
+              {loading ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </form>

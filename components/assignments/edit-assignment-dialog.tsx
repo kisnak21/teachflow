@@ -87,8 +87,15 @@ export function EditAssignmentDialog({
   }
 
   async function handleDeleteAttachment(fileId: string) {
-    await deleteAttachment(fileId)
-    setAttachments((prev) => prev.filter((f) => f.id !== fileId))
+    try {
+      await deleteAttachment(fileId)
+      setAttachments((prev) => prev.filter((f) => f.id !== fileId))
+      setUploadError('')
+    } catch (err: unknown) {
+      setUploadError(
+        err instanceof Error ? err.message : 'Failed to delete attachment'
+      )
+    }
   }
 
   const allSelected = form.classIds.length === classes.length
@@ -202,15 +209,27 @@ export function EditAssignmentDialog({
               onClientUploadComplete={async (res) => {
                 setUploadError('')
                 for (const file of res) {
-                  await addAttachment({
-                    url: file.ufsUrl,
-                    name: file.name,
-                    assignmentId: assignment.id,
-                  })
-                  setAttachments((prev) => [
-                    ...prev,
-                    { id: file.key, name: file.name, url: file.ufsUrl },
-                  ])
+                  try {
+                    const created = await addAttachment({
+                      url: file.ufsUrl,
+                      name: file.name,
+                      assignmentId: assignment.id,
+                    })
+                    setAttachments((prev) => [
+                      ...prev,
+                      {
+                        id: created.id,
+                        name: created.name,
+                        url: created.url,
+                      },
+                    ])
+                  } catch (err: unknown) {
+                    setUploadError(
+                      err instanceof Error
+                        ? err.message
+                        : 'Failed to save attachment'
+                    )
+                  }
                 }
               }}
               onUploadError={(uploadErr: Error) => {

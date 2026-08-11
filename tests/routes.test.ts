@@ -34,5 +34,7 @@ describe('Route helpers', () => {
     expect(isStudentRoute('/student/attendance')).toBe(true)
     expect(isStudentRoute('/student/login')).toBe(false)
     expect(isStudentRoute('/dashboard')).toBe(false)
+    expect(isStudentRoute('/students')).toBe(false)
+    expect(isStudentRoute('/student-dashboard')).toBe(false)
   })
 })

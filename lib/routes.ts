@@ -28,7 +28,8 @@ export function isTeacherRoute(pathname: string): boolean {
 
 export function isStudentRoute(pathname: string): boolean {
   return (
-    (pathname.startsWith(STUDENT_PREFIX) || pathname === STUDENT_PREFIX) &&
+    (pathname === STUDENT_PREFIX ||
+      pathname.startsWith(STUDENT_PREFIX + '/')) &&
     !isStudentAuthPage(pathname)
   )
 }

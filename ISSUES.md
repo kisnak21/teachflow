@@ -17,7 +17,18 @@
 - **[x] ISSUE-013** — route constants extracted to `lib/routes.ts`, used in `middleware.ts`
 - **[x] ISSUE-014** — audited Next.js 16 docs; `next lint` removed → `eslint .`, middleware/`proxy` rename deferred
 - **[x] NEW: Ownership (IDOR)** — all server actions verify teacher owns target class/assignment/lesson-plan/attachment before mutate; added `requireTeacher()`/`requireStudent()` helpers in `lib/auth-helpers.ts` (commit `76ae3e9`)
-- **[x] ISSUE-018** — `/students` (teacher route) misclassified as student route: `isStudentRoute` used `startsWith('/student')`, which also matched `/students`; middleware bounced teachers back to `/dashboard`. Fixed with path-boundary check (`=== '/student'` or `startsWith('/student/')`) + regression tests (commit pending)
+- **[x] ISSUE-018** — `/students` (teacher route) misclassified as student route: `isStudentRoute` used `startsWith('/student')`, which also matched `/students`; middleware bounced teachers back to `/dashboard`. Fixed with path-boundary check (`=== '/student'` or `startsWith('/student/')`) + regression tests (commit `6f1cb1d`)
+- **[x] NEW: UploadThing orphans** — edit dialogs pushed locally-uploaded files into state with `file.key` instead of the returned DB row id, so deleting a fresh upload failed ("Attachment not found") and left an orphaned object in storage. `addAttachment` now returns the created row; dialogs use `created.id`; storage cleanup is resilient (utapi failure no longer blocks DB delete).
+- **[x] NEW: Transaction-less multi-step writes** — `saveAttendance` (deleteMany → createMany) and `updateAssignment` (AssignmentClass deleteMany → recreate) now run inside `db.$transaction`.
+- **[x] NEW: No server-side attendance validation** — `saveAttendance` now validates via `attendanceSchema` (zod enum status) before any DB write.
+- **[x] NEW: AI endpoint without rate limit** — `generateLessonPlan` is now rate-limited per teacher (10/min) via `KeyedRateLimiter` in `lib/rate-limit.ts` (Groq cost guard).
+- **[x] NEW: Unguarded delete/save handlers** — all client delete/save handlers (student-table, assignment-list, lesson-plan-list, class-card, attendance-client) now have try/catch + inline error message.
+- **[x] ISSUE-016** — `middleware.ts` renamed to `proxy.ts` + export renamed to `proxy` (deprecation migration, commit pending).
+- **[x] ISSUE-009** — proxy session user typed via `Session['user'] & { role? }`; role checks now use the typed union ('teacher' | 'student') instead of `req.auth?.user?.role` untyped access.
+- **[x] NEW: Duplicated access-code generation** — single `lib/access-code.ts` (crypto `randomInt`, unambiguous alphabet); DB `dbgenerated` default dropped via migration; `createClass` retries on P2002 collision.
+- **[x] NEW: `User.role` String → `Role` enum** — migration converts existing rows ('teacher'/'student' → 'TEACHER'/'STUDENT'); `auth.ts` maps back to lowercase for the session contract.
+- **[x] NEW: Attendance duplicate risk** — `@@unique([studentId, classId, date])` added; save runs delete-then-create inside a transaction.
+- **[x] NEW: Duplicated loading skeletons** — `components/page-loading.tsx` shared; the three identical `loading.tsx` files now re-export it.
 
 ---
 
@@ -50,11 +61,6 @@
 **Impact:** Resend `from` defaults to `onboarding@resend.dev`; production domain must be verified + `RESEND_FROM_EMAIL` set.
 **Fix:** Verify domain in Resend dashboard, set `RESEND_FROM_EMAIL`, `RESEND_API_KEY` in prod env.
 
-### [ ] ISSUE-016: `middleware.ts` deprecated → `proxy.ts`
-
-**Impact:** Next.js 16 deprecates `middleware` filename and `middleware` export (renamed to `proxy`).
-**Fix:** Rename file + export to `proxy` on next Next.js minor upgrade.
-
 ---
 
 ## 🔵 Low / Quick Wins (P3)
@@ -66,6 +72,24 @@
 ### [ ] ISSUE-017: `components/assignments/assignment-list.tsx` — `Date.now()` in `useMemo` triggers `react-hooks/purity`
 
 **Fix:** Pass `now` as prop from server page or compute status server-side (same pattern as student assignments page).
+
+### [ ] NEW: `app/student/login` lives outside the `(student)` route group
+
+**Impact:** layout inheritance differs from other student pages; middleware matches it by string.
+**Fix:** Move into `(student)` group or accept as-is (works today).
+
+### [ ] NEW: PDF export returns base64 through server-action boundary
+
+**Fix:** Move to an API route (`/api/export/attendance?classId=&date=`) with streaming binary response.
+
+### [ ] NEW: `next-rate-limit` + `KeyedRateLimiter` are in-memory (per-process)
+
+**Impact:** Ineffective across multiple instances.
+**Fix:** Acceptable for single-instance Vercel; revisit if multi-region.
+
+### [ ] NEW: README `Known Limitations` — profile name change requires re-login (JWT cache)
+
+**Fix:** Shorten session maxAge so name changes appear sooner, or trigger session refresh after profile update.
 
 ---
 

@@ -1,5 +1,6 @@
 import NextAuth from 'next-auth'
 import { NextResponse } from 'next/server'
+import type { Session } from 'next-auth'
 import { authConfig } from './auth.config'
 import {
   isStudentAuthPage,
@@ -10,9 +11,12 @@ import {
 
 const { auth } = NextAuth(authConfig)
 
+type SessionUser = Session['user'] & { role?: 'teacher' | 'student' }
+
 export default auth((req) => {
-  const isLoggedIn = !!req.auth
-  const role = req.auth?.user?.role
+  const user = req.auth?.user as SessionUser | undefined
+  const isLoggedIn = !!user?.id
+  const role = user?.role
   const pathname = req.nextUrl.pathname
 
   const isTeacherPage = isTeacherAuthPage(pathname)

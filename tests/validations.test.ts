@@ -5,11 +5,14 @@ import {
   assignmentSchema,
   lessonPlanSchema,
   registerSchema,
+  attendanceSchema,
 } from '@/lib/validations'
 
 describe('classSchema', () => {
   it('accepts valid class data', () => {
-    expect(classSchema.safeParse({ name: 'Math 101', level: 'X' }).success).toBe(true)
+    expect(
+      classSchema.safeParse({ name: 'Math 101', level: 'X' }).success
+    ).toBe(true)
   })
 
   it('rejects empty name', () => {
@@ -141,5 +144,39 @@ describe('lessonPlanSchema', () => {
       classId: 'abc',
     })
     expect(result.success).toBe(true)
+  })
+})
+
+describe('attendanceSchema', () => {
+  const validRecord = {
+    studentId: 's1',
+    classId: 'c1',
+    date: '2026-08-11',
+    status: 'PRESENT',
+  }
+
+  it('accepts valid attendance records', () => {
+    expect(attendanceSchema.safeParse([validRecord]).success).toBe(true)
+    expect(attendanceSchema.safeParse([validRecord, validRecord]).success).toBe(
+      true
+    )
+  })
+
+  it('rejects empty array', () => {
+    expect(attendanceSchema.safeParse([]).success).toBe(false)
+  })
+
+  it('rejects invalid status value', () => {
+    const result = attendanceSchema.safeParse([
+      { ...validRecord, status: 'EXCUSED' },
+    ])
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects missing studentId', () => {
+    const result = attendanceSchema.safeParse([
+      { classId: 'c1', date: '2026-08-11', status: 'PRESENT' },
+    ])
+    expect(result.success).toBe(false)
   })
 })

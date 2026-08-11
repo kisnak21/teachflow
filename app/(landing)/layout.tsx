@@ -1,18 +1,24 @@
 import type { Metadata } from 'next'
-import { Fredoka, Caveat } from 'next/font/google'
+import localFont from 'next/font/local'
 import { cn } from '@/lib/utils'
 import './landing.css'
 
-const fredoka = Fredoka({
+const fredoka = localFont({
+  src: [
+    { path: './fonts/fredoka-latin.woff2' },
+    { path: './fonts/fredoka-latin-ext.woff2' },
+  ],
+  weight: '400 700',
   variable: '--font-display',
-  subsets: ['latin', 'latin-ext'],
-  weight: ['400', '500', '600', '700'],
 })
 
-const caveat = Caveat({
+const caveat = localFont({
+  src: [
+    { path: './fonts/caveat-latin.woff2' },
+    { path: './fonts/caveat-latin-ext.woff2' },
+  ],
+  weight: '400 700',
   variable: '--font-hand',
-  subsets: ['latin', 'latin-ext'],
-  weight: ['500', '600', '700'],
 })
 
 export const metadata: Metadata = {

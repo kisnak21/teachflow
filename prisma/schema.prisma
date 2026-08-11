@@ -11,7 +11,7 @@ model User {
   name        String
   email       String       @unique
   password    String
-  role        String       @default("teacher")
+  role        Role         @default(TEACHER)
   createdAt   DateTime     @default(now())
   classes     Class[]
   assignments Assignment[]
@@ -30,7 +30,7 @@ model Class {
   id                String            @id @default(cuid())
   name              String
   level             String?
-  accessCode        String            @unique @default(dbgenerated("substr(md5(random()::text), 1, 6)"))
+  accessCode        String            @unique
   teacherId         String
   createdAt         DateTime          @default(now())
   teacher           User              @relation(fields: [teacherId], references: [id], onDelete: Cascade)
@@ -59,12 +59,19 @@ model Attendance {
   status    AttendanceStatus
   student   Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
   class     Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, classId, date])
 }
 
 enum AttendanceStatus {
   PRESENT
   ABSENT
   LATE
+}
+
+enum Role {
+  TEACHER
+  STUDENT
 }
 
 model Assignment {

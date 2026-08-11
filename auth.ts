@@ -35,7 +35,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           name: user.name,
           email: user.email,
-          role: user.role,
+          role: user.role.toLowerCase() as 'teacher' | 'student',
         }
       },
     }),
@@ -52,7 +52,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const { db } = await import('@/lib/db')
 
         const cls = await db.class.findUnique({
-          where: { accessCode: (credentials.accessCode as string).toUpperCase() },
+          where: {
+            accessCode: (credentials.accessCode as string).toUpperCase(),
+          },
         })
 
         if (!cls) return null

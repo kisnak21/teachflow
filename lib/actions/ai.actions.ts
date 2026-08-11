@@ -2,6 +2,7 @@
 
 import { getGroq } from '@/lib/groq'
 import { requireTeacher } from '@/lib/auth-helpers'
+import { aiRateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const generateSchema = z.object({
@@ -24,7 +25,9 @@ export interface GeneratedLessonPlan {
 export async function generateLessonPlan(
   data: GenerateInput
 ): Promise<GeneratedLessonPlan> {
-  await requireTeacher()
+  const teacherId = await requireTeacher()
+
+  aiRateLimit.check(teacherId)
 
   const parsed = generateSchema.safeParse(data)
   if (!parsed.success) {

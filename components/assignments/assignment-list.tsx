@@ -11,9 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Pencil, Trash2, Paperclip } from 'lucide-react'
+import { Pencil, Trash2, Paperclip, ClipboardCheck } from 'lucide-react'
 import { deleteAssignment } from '@/lib/actions/assignment.actions'
 import { EditAssignmentDialog } from './edit-assignment-dialog'
+import { SubmissionsDialog } from './submissions-dialog'
 
 interface Assignment {
   id: string
@@ -35,6 +36,10 @@ interface Props {
 
 export function AssignmentList({ assignments, classes }: Props) {
   const [editAssignment, setEditAssignment] = useState<Assignment | null>(null)
+  const [submissionsFor, setSubmissionsFor] = useState<{
+    id: string
+    title: string
+  } | null>(null)
   const [error, setError] = useState('')
 
   async function handleDelete(id: string, title: string) {
@@ -119,6 +124,20 @@ export function AssignmentList({ assignments, classes }: Props) {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
+                      onClick={() =>
+                        setSubmissionsFor({
+                          id: assignment.id,
+                          title: assignment.title,
+                        })
+                      }
+                      title="Submissions"
+                    >
+                      <ClipboardCheck className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
                       onClick={() => setEditAssignment(assignment)}
                     >
                       <Pencil className="h-4 w-4" />
@@ -147,6 +166,15 @@ export function AssignmentList({ assignments, classes }: Props) {
           classes={classes}
           open={!!editAssignment}
           onOpenChange={(open) => !open && setEditAssignment(null)}
+        />
+      )}
+
+      {submissionsFor && (
+        <SubmissionsDialog
+          assignmentId={submissionsFor.id}
+          assignmentTitle={submissionsFor.title}
+          open={!!submissionsFor}
+          onOpenChange={(open) => !open && setSubmissionsFor(null)}
         />
       )}
     </>

@@ -48,7 +48,12 @@ async function main() {
   ]
 
   const now = new Date()
-  const classes = []
+  const classes: {
+    id: string
+    name: string
+    level: string | null
+    accessCode: string
+  }[] = []
 
   for (const [i, def] of classDefs.entries()) {
     const cls = await db.class.create({

@@ -40,17 +40,30 @@ export function Navbar({
   }, [])
 
   return (
-    <nav className={cn('landing-nav', scrolled && 'scrolled')}>
-      <div className="container nav-inner">
-        <Link className="logo" href="/" translate="no">
-          <span className="logo-mark">
+    <nav
+      className={cn(
+        'fixed top-0 z-50 w-full border-b border-transparent transition-colors duration-250',
+        scrolled && 'border-border bg-background/90 backdrop-blur-md'
+      )}
+    >
+      <div className="mx-auto flex h-[68px] max-w-[1080px] items-center justify-between px-6">
+        <Link
+          className="font-display flex items-center gap-2.5 text-xl font-semibold text-foreground no-underline"
+          href="/"
+          translate="no"
+        >
+          <span className="grid h-9 w-9 -rotate-4 place-items-center rounded-xl bg-primary text-primary-foreground">
             <GraduationCap className="h-5 w-5" strokeWidth={2.2} />
           </span>
           TeachFlow
         </Link>
-        <div className="nav-links">
+        <div className="flex gap-[26px] text-sm font-medium max-[900px]:hidden">
           {NAV_LINKS.map((l) => (
-            <a key={l.href} href={l.href}>
+            <a
+              key={l.href}
+              href={l.href}
+              className="text-muted-foreground no-underline hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
               {l.label}
             </a>
           ))}
@@ -58,14 +71,14 @@ export function Navbar({
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <AuthCta
-            className="nav-cta"
+            className="hidden min-[640px]:inline-flex"
             isAuthenticated={isAuthenticated}
             dashboardHref={dashboardHref}
             label="Daftar Gratis"
           />
           <button
             type="button"
-            className="nav-burger"
+            className="hidden h-10 w-10 cursor-pointer touch-manipulation place-items-center rounded-xl border border-border bg-muted text-foreground tap-highlight-transparent transition-colors duration-180 hover:bg-muted/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring max-[900px]:grid"
             aria-label={open ? 'Tutup menu' : 'Buka menu'}
             aria-expanded={open}
             aria-controls="nav-menu"
@@ -76,19 +89,26 @@ export function Navbar({
         </div>
       </div>
       {open && (
-        <div id="nav-menu" className="nav-menu">
-          <div className="container">
-            {NAV_LINKS.map((l) => (
-              <a key={l.href} href={l.href} onClick={() => setOpen(false)}>
-                {l.label}
-              </a>
-            ))}
-            <AuthCta
-              isAuthenticated={isAuthenticated}
-              dashboardHref={dashboardHref}
-              label="Daftar Gratis"
-            />
-          </div>
+        <div
+          id="nav-menu"
+          className="absolute left-0 right-0 top-[68px] border-b border-border bg-background/95 px-6 pb-6 pt-2 backdrop-blur-md"
+        >
+          {NAV_LINKS.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              onClick={() => setOpen(false)}
+              className="block py-3 font-medium text-muted-foreground no-underline hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              {l.label}
+            </a>
+          ))}
+          <AuthCta
+            className="mt-4 w-full"
+            isAuthenticated={isAuthenticated}
+            dashboardHref={dashboardHref}
+            label="Daftar Gratis"
+          />
         </div>
       )}
     </nav>

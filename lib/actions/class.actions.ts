@@ -27,7 +27,7 @@ export async function createClass(data: { name: string; level: string }) {
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      await db.class.create({
+      const created = await db.class.create({
         data: {
           name: parsed.data.name,
           level: parsed.data.level,
@@ -36,7 +36,7 @@ export async function createClass(data: { name: string; level: string }) {
         },
       })
       revalidatePath('/classes')
-      return
+      return created
     } catch (error) {
       const isCollision =
         error instanceof Prisma.PrismaClientKnownRequestError &&

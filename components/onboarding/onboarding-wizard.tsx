@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import {
   Card,
   CardContent,
@@ -13,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { createClass, getClasses } from '@/lib/actions/class.actions'
+import { createClass } from '@/lib/actions/class.actions'
 import { createStudent } from '@/lib/actions/student.actions'
 import {
   BookOpen,
@@ -38,22 +37,38 @@ const steps = [
   { label: 'Bagikan Kode', icon: Share2 },
 ]
 
-export function OnboardingWizard() {
-  const router = useRouter()
+export function OnboardingWizard({
+  onComplete,
+  onSkip,
+}: {
+  onComplete?: () => void
+  onSkip?: () => void
+}) {
   const [step, setStep] = useState(1)
   const [createdClass, setCreatedClass] = useState<CreatedClass | null>(null)
-  const [isPending, startTransition] = useTransition()
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-primary" />
-          Selamat datang di TeachFlow!
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Selesaikan 3 langkah ini untuk memulai mengajar.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-primary" />
+            Selamat datang di TeachFlow!
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Selesaikan 3 langkah ini untuk memulai mengajar.
+          </p>
+        </div>
+        {onSkip && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onSkip}
+            className="shrink-0 text-muted-foreground"
+          >
+            Lewati
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
@@ -106,8 +121,7 @@ export function OnboardingWizard() {
       {step === 3 && createdClass && (
         <StepShareCode
           createdClass={createdClass}
-          onDone={() => startTransition(() => router.refresh())}
-          isPending={isPending}
+          onDone={() => onComplete?.()}
         />
       )}
     </div>
@@ -128,11 +142,8 @@ function StepCreateClass({
     setLoading(true)
     setError('')
     try {
-      await createClass({ name: form.name, level: form.level })
-      const classes = await getClasses()
-      const created =
-        classes.find((c) => c.name === form.name && c.level === form.level) ??
-        classes[0]
+      const created = await createClass({ name: form.name, level: form.level })
+      if (!created) throw new Error('Failed to create class')
       onCreated(created as CreatedClass)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create class')
@@ -292,11 +303,9 @@ function StepAddStudents({
 function StepShareCode({
   createdClass,
   onDone,
-  isPending,
 }: {
   createdClass: CreatedClass
   onDone: () => void
-  isPending: boolean
 }) {
   const [copied, setCopied] = useState(false)
 
@@ -344,7 +353,7 @@ function StepShareCode({
           login dengan NIS + kode di atas
         </p>
         <div className="flex justify-end">
-          <Button onClick={onDone} disabled={isPending}>
+          <Button onClick={onDone}>
             Selesai — ke Dashboard <Check className="ml-2 h-4 w-4" />
           </Button>
         </div>

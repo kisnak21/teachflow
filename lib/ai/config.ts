@@ -12,14 +12,7 @@ export const AI_CONFIG = {
     process.env.OPENROUTER_MODEL_GEMMA ?? 'google/gemma-4-26b-a4b-it:free',
   openrouterMaxTokens: Number(process.env.OPENROUTER_MAX_TOKENS ?? 2400),
 
-  // Legacy — kept for backwards compat, tidak dipakai saat OPENROUTER aktif
+  // Legacy Groq — optional fallback jika OPENROUTER tidak dikonfigurasi
   groqModel: process.env.GROQ_MODEL ?? 'openai/gpt-oss-120b',
   groqMaxTokens: Number(process.env.GROQ_MAX_TOKENS ?? 2400),
-  dashscopeBaseUrl:
-    process.env.DASHSCOPE_BASE_URL ??
-    'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
-  dashscopeModelQwen: process.env.DASHSCOPE_MODEL_QWEN ?? 'qwen3.7-max',
-  dashscopeModelDeepseek:
-    process.env.DASHSCOPE_MODEL_DEEPSEEK ?? 'deepseek-v4-flash-0731',
-  dashscopeMaxTokens: Number(process.env.DASHSCOPE_MAX_TOKENS ?? 2400),
 } as const

@@ -48,7 +48,7 @@ export async function generateLessonPlan(
   const maxTokens =
     candidate.provider === 'groq'
       ? AI_CONFIG.groqMaxTokens
-      : AI_CONFIG.dashscopeMaxTokens
+      : AI_CONFIG.openrouterMaxTokens
 
   let buffer = ''
   for await (const delta of streamForModel(

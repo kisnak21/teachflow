@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
     return new Response(
       JSON.stringify({
         error:
-          'No AI provider configured. Set GROQ_API_KEY or DASHSCOPE_API_KEY.',
+          'No AI provider configured. Set OPENROUTER_API_KEY or GROQ_API_KEY.',
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
@@ -138,9 +138,7 @@ export async function POST(req: NextRequest) {
   const maxTokens =
     body.strategy === 'manual' && body.modelId === AI_CONFIG.groqModel
       ? AI_CONFIG.groqMaxTokens
-      : body.strategy === 'manual' && body.modelId
-        ? AI_CONFIG.dashscopeMaxTokens
-        : Math.max(AI_CONFIG.groqMaxTokens, AI_CONFIG.dashscopeMaxTokens)
+      : AI_CONFIG.openrouterMaxTokens
 
   const candidates = orderedCandidates(body.modelId ?? null, body.strategy)
 

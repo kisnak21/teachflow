@@ -1,7 +1,7 @@
 import OpenAI from 'openai'
 import { AI_CONFIG } from './config'
 
-export type ProviderId = 'openrouter' | 'groq' | 'dashscope'
+export type ProviderId = 'openrouter' | 'groq'
 
 export interface AIModelOption {
   id: string
@@ -28,7 +28,7 @@ function getOpenRouterClient(): OpenAI {
   return openrouterClient
 }
 
-// Prefer OpenRouter when configured; legacy groq/dashscope hanya jika OPENROUTER tidak ada
+// Prefer OpenRouter when configured; legacy groq hanya jika OPENROUTER tidak ada
 export function getEnabledModels(): AIModelOption[] {
   // OpenRouter free models — prioritas utama
   if (process.env.OPENROUTER_API_KEY) {
@@ -64,7 +64,7 @@ export function getEnabledModels(): AIModelOption[] {
     })
   }
 
-  // Legacy fallback — groq/dashscope hanya jika openrouter tidak dikonfigurasi
+  // Legacy fallback — groq hanya jika openrouter tidak dikonfigurasi
   const legacy: AIModelOption[] = []
   if (process.env.GROQ_API_KEY) {
     legacy.push({
@@ -72,20 +72,6 @@ export function getEnabledModels(): AIModelOption[] {
       label: `Groq · ${AI_CONFIG.groqModel}`,
       provider: 'groq',
     })
-  }
-  if (process.env.DASHSCOPE_API_KEY) {
-    legacy.push({
-      id: AI_CONFIG.dashscopeModelQwen,
-      label: `DashScope · ${AI_CONFIG.dashscopeModelQwen}`,
-      provider: 'dashscope',
-    })
-    if (AI_CONFIG.dashscopeModelDeepseek !== AI_CONFIG.dashscopeModelQwen) {
-      legacy.push({
-        id: AI_CONFIG.dashscopeModelDeepseek,
-        label: `DashScope · ${AI_CONFIG.dashscopeModelDeepseek}`,
-        provider: 'dashscope',
-      })
-    }
   }
   return legacy
 }
@@ -99,8 +85,7 @@ export function getProviderForModel(modelId: string): ProviderId {
   if (found) return found.provider
   // Heuristic fallback
   if (process.env.OPENROUTER_API_KEY) return 'openrouter'
-  if (modelId === AI_CONFIG.groqModel) return 'groq'
-  return 'dashscope'
+  return 'groq'
 }
 
 export async function* streamForModel(
@@ -140,54 +125,23 @@ export async function* streamForModel(
     return
   }
 
-  // Legacy groq/dashscope — dipertahankan untuk kompatibilitas
-  if (provider === 'groq') {
-    const { getGroq } = await import('@/lib/groq')
-    const groq = getGroq()
-    const stream = await groq.chat.completions.create({
-      model: modelId,
-      messages,
-      temperature: 0.7,
-      max_tokens: maxTokens,
-      stream: true,
-    } as unknown as Parameters<
-      ReturnType<typeof getGroq>['chat']['completions']['create']
-    >[0] & { stream: true })
-
-    for await (const chunk of stream) {
-      const delta =
-        (chunk as unknown as { choices: { delta?: { content?: string } }[] })
-          .choices?.[0]?.delta?.content ?? ''
-      if (delta) yield delta
-    }
-    return
-  }
-
-  // dashscope legacy
-  const dashKey = process.env.DASHSCOPE_API_KEY
-  if (!dashKey) throw new Error('DASHSCOPE_API_KEY is not set')
-  const dashClient = new OpenAI({
-    apiKey: dashKey,
-    baseURL: AI_CONFIG.dashscopeBaseUrl,
-  })
-  const stream = await dashClient.chat.completions.create({
+  // Legacy groq — dipertahankan untuk kompatibilitas
+  const { getGroq } = await import('@/lib/groq')
+  const groq = getGroq()
+  const stream = await groq.chat.completions.create({
     model: modelId,
     messages,
     temperature: 0.7,
     max_tokens: maxTokens,
     stream: true,
-    extra_body: { enable_thinking: false },
-  } as unknown as Parameters<OpenAI['chat']['completions']['create']>[0] & {
-    stream: true
-  })
+  } as unknown as Parameters<
+    ReturnType<typeof getGroq>['chat']['completions']['create']
+  >[0] & { stream: true })
 
   for await (const chunk of stream) {
     const delta =
-      (
-        chunk as unknown as {
-          choices: { delta?: { content?: string | null } }[]
-        }
-      ).choices?.[0]?.delta?.content ?? ''
+      (chunk as unknown as { choices: { delta?: { content?: string } }[] })
+        .choices?.[0]?.delta?.content ?? ''
     if (delta) yield delta
   }
 }

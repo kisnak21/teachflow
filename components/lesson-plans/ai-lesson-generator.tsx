@@ -58,29 +58,6 @@ const SECTION_LABELS: Record<string, string> = {
   '[DIFFERENTIATION]': 'Diferensiasi',
 }
 
-function sectionKey(marker: string): keyof GeneratedLessonPlan {
-  switch (marker) {
-    case '[TITLE]':
-      return 'title' as unknown as keyof GeneratedLessonPlan
-    case '[OBJECTIVES]':
-      return 'objectives'
-    case '[ACTIVITIES]':
-      return 'activities'
-    case '[ASSESSMENT]':
-      return 'assessment'
-    case '[HOMEWORK]':
-      return 'homework'
-    case '[MATERIALS]':
-      return 'materials'
-    case '[METHODS]':
-      return 'methods'
-    case '[DIFFERENTIATION]':
-      return 'differentiation'
-    default:
-      return 'title' as unknown as keyof GeneratedLessonPlan
-  }
-}
-
 export function AILessonGenerator({ classes, enabledModels }: Props) {
   const router = useRouter()
   const [form, setForm] = useState({
@@ -92,21 +69,10 @@ export function AILessonGenerator({ classes, enabledModels }: Props) {
     language: 'id' as Language,
     method: '',
     classId: '',
-    modelChoice: 'auto',
   })
 
   const [streaming, setStreaming] = useState(false)
-  const [streamMeta, setStreamMeta] = useState<{
-    model: string
-    provider: string
-    label: string
-  } | null>(null)
   const [sections, setSections] = useState<Record<string, string>>({})
-  const [partial, setPartial] = useState<{
-    marker: string
-    text: string
-  } | null>(null)
-  const [fallbacks, setFallbacks] = useState<string[]>([])
   const [error, setError] = useState('')
   const [result, setResult] = useState<GeneratedLessonPlan | null>(null)
   const [saving, setSaving] = useState(false)
@@ -133,15 +99,12 @@ export function AILessonGenerator({ classes, enabledModels }: Props) {
       setResult(null)
     }
     setSections({})
-    setPartial(null)
-    setFallbacks([])
-    setStreamMeta(null)
     setStreaming(true)
 
     const controller = new AbortController()
     abortRef.current = controller
 
-    const isAuto = form.modelChoice === 'auto'
+    // Selalu round-robin — user tidak memilih model, sistem rotasi otomatis (OpenRouter 4 + Groq)
     const body = {
       subject: form.subject,
       topic: form.topic,
@@ -150,8 +113,8 @@ export function AILessonGenerator({ classes, enabledModels }: Props) {
       curriculum: form.curriculum,
       language: form.language,
       method: form.method || undefined,
-      modelId: isAuto ? undefined : form.modelChoice,
-      strategy: isAuto ? ('round-robin' as const) : ('manual' as const),
+      modelId: undefined,
+      strategy: 'round-robin' as const,
       allowFallback: true,
     }
 
@@ -208,30 +171,10 @@ export function AILessonGenerator({ classes, enabledModels }: Props) {
             continue
           }
 
-          if (event === 'meta') {
-            const d = data as { model: string; provider: string; label: string }
-            setStreamMeta({
-              model: d.model,
-              provider: d.provider,
-              label: d.label,
-            })
-          } else if (event === 'section') {
+          if (event === 'section') {
+            // Keep for fallback reconstruction if `done` never arrives
             const d = data as { marker: string; label: string; text: string }
             localSections[d.marker] = d.text
-            setSections((prev) => ({ ...prev, [d.marker]: d.text }))
-          } else if (event === 'delta') {
-            const d = data as { marker: string; label: string; partial: string }
-            setPartial({ marker: d.marker, text: d.partial })
-          } else if (event === 'fallback') {
-            const d = data as {
-              from: string
-              error: string
-              next: string | null
-            }
-            setFallbacks((prev) => [
-              ...prev,
-              `${d.from} → ${d.next ?? '?'} (${d.error})`,
-            ])
           } else if (event === 'done') {
             const d = data as {
               plan: GeneratedLessonPlan
@@ -250,7 +193,6 @@ export function AILessonGenerator({ classes, enabledModels }: Props) {
             mapped['[METHODS]'] = d.plan.methods.join('\n')
             mapped['[DIFFERENTIATION]'] = d.plan.differentiation.join('\n')
             setSections(mapped)
-            setPartial(null)
           } else if (event === 'error') {
             const d = data as { message: string }
             throw new Error(d.message)
@@ -536,62 +478,34 @@ export function AILessonGenerator({ classes, enabledModels }: Props) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Kelas Tujuan</Label>
-                {hasClasses ? (
-                  <Select
-                    value={form.classId}
-                    onValueChange={(v) => setForm({ ...form, classId: v })}
-                    disabled={streaming}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih kelas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {classes.map((cls) => (
-                        <SelectItem key={cls.id} value={cls.id}>
-                          {cls.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div className="text-sm text-muted-foreground border rounded-md px-3 py-2">
-                    Belum ada kelas.{' '}
-                    <Link href="/classes" className="text-primary underline">
-                      Buat kelas
-                    </Link>{' '}
-                    dulu.
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>Model AI</Label>
+            <div className="space-y-2">
+              <Label>Kelas Tujuan</Label>
+              {hasClasses ? (
                 <Select
-                  value={form.modelChoice}
-                  onValueChange={(v) => setForm({ ...form, modelChoice: v })}
-                  disabled={streaming || !hasModels}
+                  value={form.classId}
+                  onValueChange={(v) => setForm({ ...form, classId: v })}
+                  disabled={streaming}
                 >
                   <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        hasModels ? 'Pilih model' : 'Tidak ada model'
-                      }
-                    />
+                    <SelectValue placeholder="Pilih kelas" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto">
-                      Otomatis (round-robin + fallback)
-                    </SelectItem>
-                    {enabledModels.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>
-                        {m.label}
+                    {classes.map((cls) => (
+                      <SelectItem key={cls.id} value={cls.id}>
+                        {cls.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              ) : (
+                <div className="text-sm text-muted-foreground border rounded-md px-3 py-2">
+                  Belum ada kelas.{' '}
+                  <Link href="/classes" className="text-primary underline">
+                    Buat kelas
+                  </Link>{' '}
+                  dulu.
+                </div>
+              )}
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
@@ -644,23 +558,25 @@ export function AILessonGenerator({ classes, enabledModels }: Props) {
         </CardContent>
       </Card>
 
-      {/* Streaming / Result */}
-      {(streaming || result || Object.keys(sections).length > 0) && (
+      {/* Streaming / Result — skeleton while loading, full result after done */}
+      {(streaming || result) && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
             <div>
               <CardTitle className="text-sm font-medium">
-                {sections['[TITLE]'] || 'RPP (streaming...)'}
+                {streaming && !result
+                  ? 'Menyusun RPP...'
+                  : sections['[TITLE]'] || result?.title || 'RPP'}
               </CardTitle>
-              {streamMeta && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Model: {streamMeta.label}{' '}
-                  {streaming ? '• streaming...' : '• selesai'}
+              {streaming && !result && (
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  AI sedang menyusun materi — mohon tunggu
                 </p>
               )}
-              {fallbacks.length > 0 && (
-                <p className="text-xs text-amber-600 mt-1">
-                  Fallback: {fallbacks.join(' | ')}
+              {result && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Selesai — silakan tinjau & simpan
                 </p>
               )}
             </div>
@@ -717,83 +633,66 @@ export function AILessonGenerator({ classes, enabledModels }: Props) {
             )}
           </CardHeader>
           <CardContent className="space-y-4">
-            {displayedSections
-              .filter((s) => s.marker !== '[TITLE]')
-              .map((sec) => {
-                const isActivePartial =
-                  partial?.marker === sec.marker && streaming
-                const displayText =
-                  sec.text || (isActivePartial ? partial.text : '')
-                const hasContent = !!displayText
-                if (!hasContent && !streaming) return null
-                if (
-                  !hasContent &&
-                  streaming &&
-                  sec.marker !== partial?.marker
-                ) {
-                  // Not yet reached this section
-                  return (
-                    <div key={sec.marker} className="opacity-50">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                        {sec.label}
-                      </p>
-                      <div className="h-8 bg-muted animate-pulse rounded" />
+            {streaming && !result ? (
+              // Skeleton — tampilkan placeholder untuk setiap section, tidak stream per-baris
+              <div className="space-y-4 animate-pulse">
+                <div>
+                  <div className="h-3 w-20 bg-muted rounded mb-2" />
+                  <div className="h-9 bg-muted rounded" />
+                </div>
+                {SECTION_ORDER.filter((m) => m !== '[TITLE]').map((marker) => (
+                  <div key={marker}>
+                    <div className="h-3 w-28 bg-muted rounded mb-2" />
+                    <div className="space-y-2">
+                      <div className="h-4 bg-muted rounded w-full" />
+                      <div className="h-4 bg-muted rounded w-[92%]" />
+                      <div className="h-4 bg-muted rounded w-[88%]" />
                     </div>
-                  )
-                }
-                return (
-                  <div key={sec.marker}>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
-                      {sec.label}
-                      {isActivePartial && (
-                        <span className="h-2 w-2 bg-primary rounded-full animate-pulse" />
-                      )}
-                    </p>
-                    {result ? (
-                      <Textarea
-                        value={displayText}
-                        onChange={(e) =>
-                          setSections((prev) => ({
-                            ...prev,
-                            [sec.marker]: e.target.value,
-                          }))
-                        }
-                        rows={Math.max(2, displayText.split('\n').length + 1)}
-                        className="text-sm"
-                      />
-                    ) : (
-                      <div className="text-sm whitespace-pre-wrap border rounded-md p-3 bg-muted/30 min-h-12">
-                        {displayText || (streaming ? 'Menunggu...' : '—')}
-                        {isActivePartial && (
-                          <span className="animate-pulse">▌</span>
-                        )}
-                      </div>
-                    )}
                   </div>
-                )
-              })}
-
-            {result && (
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                  Judul (editable)
-                </p>
-                <Input
-                  value={sections['[TITLE]'] ?? ''}
-                  onChange={(e) =>
-                    setSections((prev) => ({
-                      ...prev,
-                      ['[TITLE]']: e.target.value,
-                    }))
-                  }
-                />
+                ))}
               </div>
-            )}
+            ) : (
+              <>
+                {displayedSections
+                  .filter((s) => s.marker !== '[TITLE]')
+                  .map((sec) => {
+                    const displayText = sec.text || ''
+                    if (!displayText) return null
+                    return (
+                      <div key={sec.marker}>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                          {sec.label}
+                        </p>
+                        <Textarea
+                          value={displayText}
+                          onChange={(e) =>
+                            setSections((prev) => ({
+                              ...prev,
+                              [sec.marker]: e.target.value,
+                            }))
+                          }
+                          rows={Math.max(2, displayText.split('\n').length + 1)}
+                          className="text-sm"
+                        />
+                      </div>
+                    )
+                  })}
 
-            {streaming && !result && (
-              <p className="text-xs text-muted-foreground">
-                Streaming dari {streamMeta?.label ?? 'model'}...
-              </p>
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                    Judul (editable)
+                  </p>
+                  <Input
+                    value={sections['[TITLE]'] ?? ''}
+                    onChange={(e) =>
+                      setSections((prev) => ({
+                        ...prev,
+                        ['[TITLE]']: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

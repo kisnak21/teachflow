@@ -28,12 +28,13 @@ function getOpenRouterClient(): OpenAI {
   return openrouterClient
 }
 
-// Prefer OpenRouter when configured; legacy groq hanya jika OPENROUTER tidak ada
+// Gabungkan OpenRouter + Groq — hidden dari user, round-robin di belakang layar
 export function getEnabledModels(): AIModelOption[] {
-  // OpenRouter free models — prioritas utama
+  const models: AIModelOption[] = []
+
   if (process.env.OPENROUTER_API_KEY) {
     // Urutan prioritas: yang paling andal untuk marker RPP dulu
-    const models: AIModelOption[] = [
+    models.push(
       {
         id: AI_CONFIG.openrouterModelGemma,
         label: `OpenRouter · ${AI_CONFIG.openrouterModelGemma}`,
@@ -53,27 +54,26 @@ export function getEnabledModels(): AIModelOption[] {
         id: AI_CONFIG.openrouterModelNemotron,
         label: `OpenRouter · ${AI_CONFIG.openrouterModelNemotron}`,
         provider: 'openrouter',
-      },
-    ]
-    // Deduplicate jika env sama
-    const seen = new Set<string>()
-    return models.filter((m) => {
-      if (seen.has(m.id)) return false
-      seen.add(m.id)
-      return true
-    })
+      }
+    )
   }
 
-  // Legacy fallback — groq hanya jika openrouter tidak dikonfigurasi
-  const legacy: AIModelOption[] = []
+  // Groq selalu ikut round-robin jika key ada (fallback berlapis)
   if (process.env.GROQ_API_KEY) {
-    legacy.push({
+    models.push({
       id: AI_CONFIG.groqModel,
       label: `Groq · ${AI_CONFIG.groqModel}`,
       provider: 'groq',
     })
   }
-  return legacy
+
+  // Deduplicate jika env duplikat
+  const seen = new Set<string>()
+  return models.filter((m) => {
+    if (seen.has(m.id)) return false
+    seen.add(m.id)
+    return true
+  })
 }
 
 export function isModelEnabled(modelId: string): boolean {

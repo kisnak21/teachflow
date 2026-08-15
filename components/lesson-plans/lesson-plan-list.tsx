@@ -4,7 +4,15 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2, ChevronDown, ChevronUp, Paperclip } from 'lucide-react'
+import {
+  Pencil,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  Paperclip,
+  FileDown,
+  Loader2,
+} from 'lucide-react'
 import { deleteLessonPlan } from '@/lib/actions/lesson-plan.actions'
 import { EditLessonPlanDialog } from './edit-lesson-plan-dialog'
 
@@ -33,6 +41,7 @@ export function LessonPlanList({ lessonPlans, classes }: Props) {
   const [editPlan, setEditPlan] = useState<LessonPlan | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [exportingId, setExportingId] = useState<string | null>(null)
 
   async function handleDelete(id: string, title: string) {
     if (!confirm(`Delete "${title}"? This cannot be undone.`)) return
@@ -43,6 +52,30 @@ export function LessonPlanList({ lessonPlans, classes }: Props) {
       setError(
         err instanceof Error ? err.message : 'Failed to delete lesson plan'
       )
+    }
+  }
+
+  async function handleExportPdf(plan: LessonPlan) {
+    setError('')
+    setExportingId(plan.id)
+    try {
+      const { generateLessonPlanPdfById } =
+        await import('@/lib/actions/pdf.actions')
+      const b64 = await generateLessonPlanPdfById(plan.id)
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))
+      const blob = new Blob([bytes], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${plan.title.replace(/[^a-z0-9]/gi, '_')}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to export PDF')
+    } finally {
+      setExportingId(null)
     }
   }
 
@@ -81,6 +114,20 @@ export function LessonPlanList({ lessonPlans, classes }: Props) {
                     onClick={() => setEditPlan(plan)}
                   >
                     <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleExportPdf(plan)}
+                    disabled={exportingId === plan.id}
+                    title="Download PDF"
+                  >
+                    {exportingId === plan.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <FileDown className="h-4 w-4" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"

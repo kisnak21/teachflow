@@ -1,21 +1,27 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 export function ScrollProgress() {
-  const [width, setWidth] = useState('0%')
+  const barRef = useRef<HTMLDivElement>(null)
+  const ticking = useRef(false)
 
   useEffect(() => {
-    function onScroll() {
+    function update() {
       const total = document.documentElement.scrollHeight - window.innerHeight
-      setWidth(total > 0 ? `${(window.scrollY / total) * 100}%` : '0%')
+      const width = total > 0 ? `${(window.scrollY / total) * 100}%` : '0%'
+      if (barRef.current) barRef.current.style.width = width
+      ticking.current = false
+    }
+    function onScroll() {
+      if (ticking.current) return
+      ticking.current = true
+      requestAnimationFrame(update)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  return (
-    <div className="landing-progress" style={{ width }} aria-hidden="true" />
-  )
+  return <div ref={barRef} className="landing-progress" aria-hidden="true" />
 }

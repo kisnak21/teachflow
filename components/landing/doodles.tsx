@@ -1,3 +1,12 @@
+export function Tape({ color = 'var(--primary)' }: { color?: string }) {
+  return (
+    <span
+      className="tape"
+      style={{ '--tape-color': color } as React.CSSProperties}
+    />
+  )
+}
+
 export function Sparkle({
   width = 24,
   height = 24,

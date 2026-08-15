@@ -1,5 +1,6 @@
 import { Sparkles } from 'lucide-react'
 import { Reveal } from './reveal'
+import { Tape } from './doodles'
 
 export function AiShowcase() {
   return (
@@ -14,10 +15,7 @@ export function AiShowcase() {
           AI hanya mempercepat.
         </p>
         <Reveal className="ai-box">
-          <div
-            className="tape"
-            style={{ '--tape-color': 'var(--primary)' } as React.CSSProperties}
-          />
+          <Tape color="var(--primary)" />
           <div className="ai-prompt">
             <Sparkles
               className="h-[18px] w-[18px] shrink-0"

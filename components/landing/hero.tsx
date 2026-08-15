@@ -1,7 +1,6 @@
-import Link from 'next/link'
-import { LayoutDashboard } from 'lucide-react'
 import { Sparkle } from './doodles'
 import { Reveal } from './reveal'
+import { AuthCta } from './auth-cta'
 
 export function Hero({
   isAuthenticated,
@@ -45,16 +44,12 @@ export function Hero({
           semua.
         </p>
         <div className="hero-cta">
-          {isAuthenticated ? (
-            <Link className="btn btn-primary btn-lg" href={dashboardHref}>
-              <LayoutDashboard className="h-5 w-5" />
-              Buka Dashboard
-            </Link>
-          ) : (
-            <Link className="btn btn-primary btn-lg" href="/register">
-              Daftar Gratis
-            </Link>
-          )}
+          <AuthCta
+            size="lg"
+            isAuthenticated={isAuthenticated}
+            dashboardHref={dashboardHref}
+            label="Daftar Gratis"
+          />
           <a className="btn btn-outline btn-lg" href="#solusi">
             Langsung ke solusinya
           </a>

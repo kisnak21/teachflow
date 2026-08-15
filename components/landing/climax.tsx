@@ -1,6 +1,5 @@
-import Link from 'next/link'
-import { LayoutDashboard } from 'lucide-react'
 import { Sparkle, Squiggle } from './doodles'
+import { AuthCta } from './auth-cta'
 
 export function Climax({
   isAuthenticated,
@@ -31,16 +30,12 @@ export function Climax({
           keluarga, atau sekadar istirahat.
         </p>
         <div className="climax-cta">
-          {isAuthenticated ? (
-            <Link className="btn btn-primary btn-lg" href={dashboardHref}>
-              <LayoutDashboard className="h-5 w-5" />
-              Buka Dashboard
-            </Link>
-          ) : (
-            <Link className="btn btn-primary btn-lg" href="/register">
-              Mulai Gratis Hari Ini
-            </Link>
-          )}
+          <AuthCta
+            size="lg"
+            isAuthenticated={isAuthenticated}
+            dashboardHref={dashboardHref}
+            label="Mulai Gratis Hari Ini"
+          />
           <a className="btn btn-outline btn-lg" href="#solusi">
             Lihat Fitur
           </a>

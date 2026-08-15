@@ -21,7 +21,7 @@ export default async function LandingPage() {
     <>
       <ScrollProgress />
       <Navbar isAuthenticated={isAuthenticated} dashboardHref={dashboardHref} />
-      <main>
+      <main id="konten">
         <Hero isAuthenticated={isAuthenticated} dashboardHref={dashboardHref} />
         <Problem />
         <Journey />

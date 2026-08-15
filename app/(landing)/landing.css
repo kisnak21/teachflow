@@ -21,8 +21,50 @@
   --landing-line: var(--border);
 }
 
-html {
-  scroll-behavior: smooth;
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ---------- Skip link ---------- */
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 200;
+  transform: translateY(-200%);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-family: var(--font-display), 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: transform 150ms ease;
+}
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* ---------- Focus states ---------- */
+.btn:focus-visible,
+.logo:focus-visible,
+.nav-links a:focus-visible,
+.nav-burger:focus-visible,
+.nav-menu a:focus-visible,
+.landing-footer a:focus-visible,
+.skip-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ---------- Anchored sections clear the fixed navbar ---------- */
+.chapter,
+.climax,
+.hero {
+  scroll-margin-top: 88px;
 }
 
 .font-display {
@@ -106,6 +148,57 @@ html {
   color: var(--primary);
 }
 
+/* ---------- Mobile nav ---------- */
+.nav-burger {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--muted);
+  color: var(--foreground);
+  place-items: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 180ms ease;
+}
+.nav-burger:hover {
+  background: color-mix(in oklab, var(--muted) 80%, var(--border));
+}
+.nav-menu {
+  position: absolute;
+  top: 68px;
+  left: 0;
+  right: 0;
+  background: color-mix(in oklab, var(--background) 94%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0 22px;
+}
+.nav-menu a {
+  display: block;
+  padding: 11px 0;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.nav-menu a:hover {
+  color: var(--primary);
+}
+.nav-menu .btn {
+  margin-top: 14px;
+}
+.nav-cta {
+  display: none;
+}
+@media (min-width: 640px) {
+  .nav-cta {
+    display: inline-flex;
+  }
+}
+
 /* ---------- Buttons ---------- */
 .btn {
   display: inline-flex;
@@ -118,6 +211,8 @@ html {
   border-radius: calc(var(--radius) + 2px);
   padding: 12px 22px;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition:
     opacity 180ms ease,
     transform 180ms ease,
@@ -255,13 +350,15 @@ html {
 
 /* ---------- Reveal ---------- */
 .reveal {
-  opacity: 0;
-  transform: translateY(28px);
   transition:
     opacity 600ms ease,
     transform 600ms ease;
 }
-.reveal.visible {
+.js .reveal {
+  opacity: 0;
+  transform: translateY(28px);
+}
+.js .reveal.visible {
   opacity: 1;
   transform: translateY(0);
 }
@@ -276,7 +373,7 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal {
+  .js .reveal {
     opacity: 1;
     transform: none;
     transition: none;
@@ -310,6 +407,7 @@ html {
   line-height: 1.12;
   letter-spacing: -0.02em;
   max-width: 800px;
+  text-wrap: balance;
 }
 .hero h1 .dim {
   color: var(--muted-foreground);
@@ -400,6 +498,7 @@ html {
   letter-spacing: -0.02em;
   line-height: 1.18;
   margin-bottom: 16px;
+  text-wrap: balance;
 }
 .ch-sub {
   font-size: 1.05rem;
@@ -842,6 +941,7 @@ html {
   font-weight: 600;
   letter-spacing: -0.02em;
   margin-bottom: 18px;
+  text-wrap: balance;
 }
 .climax h2 .squiggle-wrap {
   color: var(--primary);
@@ -939,6 +1039,9 @@ html {
   }
   .nav-links {
     display: none;
+  }
+  .nav-burger {
+    display: grid;
   }
   .polaroid .doodle-arrow {
     display: none;

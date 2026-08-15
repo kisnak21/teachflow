@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { GraduationCap } from 'lucide-react'
 
 export function Footer() {
@@ -6,12 +7,12 @@ export function Footer() {
       <div className="container">
         <div className="foot-grid">
           <div className="foot-brand">
-            <a className="logo" href="#">
+            <Link className="logo" href="/" translate="no">
               <span className="logo-mark">
                 <GraduationCap className="h-5 w-5" strokeWidth={2.2} />
               </span>
               TeachFlow
-            </a>
+            </Link>
             <p>
               Asisten administratif untuk guru Indonesia. Fokus mengajar, biar
               kami yang urus sisanya.
@@ -23,23 +24,11 @@ export function Footer() {
             <a href="#masalah">Masalah</a>
             <a href="#solusi">Solusi</a>
             <a href="#harga">Harga</a>
-            <a href="#">Log Perubahan</a>
-          </div>
-          <div>
-            <h4>Dukungan</h4>
-            <a href="#">Pusat Bantuan</a>
-            <a href="#">Panduan</a>
-            <a href="#">Hubungi Kami</a>
-          </div>
-          <div>
-            <h4>Legal</h4>
-            <a href="#">Kebijakan Privasi</a>
-            <a href="#">Syarat &amp; Ketentuan</a>
+            <a href="#ai">Fitur AI</a>
           </div>
         </div>
         <div className="foot-bottom">
           <span>© 2026 TeachFlow. Dibuat oleh guru, untuk guru.</span>
-          <span>Landing page — Playful Storytelling</span>
         </div>
       </div>
     </footer>

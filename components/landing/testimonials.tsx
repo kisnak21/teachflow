@@ -33,15 +33,12 @@ export function Testimonials() {
           Kata mereka yang sudah mencoba
         </h2>
         <p className="ch-sub">
-          Pesan asli dari guru yang mencoba TeachFlow saat beta.
+          Cerita yang menggambarkan pengalaman guru yang mencoba TeachFlow saat
+          beta.
         </p>
         <div className="testi-grid" style={{ marginTop: 44 }}>
           {QUOTES.map((q, i) => (
-            <Reveal
-              key={q.name}
-              delay={i as 0 | 1 | 2}
-              className={`postit ${q.tilt}`}
-            >
+            <Reveal key={q.name} delay={i} className={`postit ${q.tilt}`}>
               <p>&quot;{q.text}&quot;</p>
               <div className="who">
                 {q.name} — {q.school}

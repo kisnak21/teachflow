@@ -1,6 +1,7 @@
 import Link from 'next/link'
-import { Check, Clock, LayoutDashboard } from 'lucide-react'
+import { Check, Clock } from 'lucide-react'
 import { Reveal } from './reveal'
+import { AuthCta } from './auth-cta'
 
 export function Pricing({
   isAuthenticated,
@@ -46,16 +47,11 @@ export function Pricing({
                 Ekspor PDF &amp; Excel tanpa batas
               </li>
             </ul>
-            {isAuthenticated ? (
-              <Link className="btn btn-primary" href={dashboardHref}>
-                <LayoutDashboard className="h-4 w-4" />
-                Buka Dashboard
-              </Link>
-            ) : (
-              <Link className="btn btn-primary" href="/register">
-                Daftar Gratis
-              </Link>
-            )}
+            <AuthCta
+              isAuthenticated={isAuthenticated}
+              dashboardHref={dashboardHref}
+              label="Daftar Gratis"
+            />
           </Reveal>
           <Reveal delay={1} className="p-card soon">
             <span className="soon-tag">

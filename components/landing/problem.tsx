@@ -1,4 +1,5 @@
 import { Reveal } from './reveal'
+import { Tape } from './doodles'
 
 export function Problem() {
   return (
@@ -14,12 +15,7 @@ export function Problem() {
         </p>
         <div className="pain-grid">
           <Reveal className="pain-card">
-            <div
-              className="tape"
-              style={
-                { '--tape-color': 'var(--primary)' } as React.CSSProperties
-              }
-            />
+            <Tape color="var(--primary)" />
             <span className="num">01 / Absensi</span>
             <h3 className="font-display">
               Rekap manual yang tak pernah akurat
@@ -30,12 +26,7 @@ export function Problem() {
             </p>
           </Reveal>
           <Reveal delay={1} className="pain-card">
-            <div
-              className="tape"
-              style={
-                { '--tape-color': 'var(--secondary)' } as React.CSSProperties
-              }
-            />
+            <Tape color="var(--secondary)" />
             <span className="num">02 / RPP</span>
             <h3 className="font-display">Menulis RPP dari nol, tiap topik</h3>
             <p>
@@ -44,12 +35,7 @@ export function Problem() {
             </p>
           </Reveal>
           <Reveal delay={2} className="pain-card">
-            <div
-              className="tape"
-              style={
-                { '--tape-color': 'var(--primary)' } as React.CSSProperties
-              }
-            />
+            <Tape color="var(--primary)" />
             <span className="num">03 / Nilai</span>
             <h3 className="font-display">Excel yang berantakan</h3>
             <p>

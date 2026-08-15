@@ -9,7 +9,7 @@ export function Reveal({
   className,
 }: {
   children: ReactNode
-  delay?: 0 | 1 | 2 | 3
+  delay?: number
   className?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -34,7 +34,7 @@ export function Reveal({
     return () => observer.disconnect()
   }, [])
 
-  const delayClass = delay === 0 ? '' : (`reveal-delay-${delay}` as const)
+  const delayClass = delay === 0 ? '' : `reveal-delay-${delay}`
 
   return (
     <div ref={ref} className={cn('reveal', delayClass, className)}>

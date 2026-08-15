@@ -5,7 +5,7 @@ import {
   FilePlus2,
 } from 'lucide-react'
 import { Reveal } from './reveal'
-import { HandArrow } from './doodles'
+import { HandArrow, Tape } from './doodles'
 
 export function Solution() {
   return (
@@ -125,12 +125,7 @@ export function Solution() {
                 begini penampakan kelas 7A siang itu
               </div>
             </div>
-            <div
-              className="tape"
-              style={
-                { '--tape-color': 'var(--secondary)' } as React.CSSProperties
-              }
-            />
+            <Tape color="var(--secondary)" />
           </Reveal>
         </div>
       </div>

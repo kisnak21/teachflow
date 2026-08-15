@@ -22,9 +22,23 @@ const caveat = localFont({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://teachflow.id'),
   title: 'TeachFlow — Asisten Administrasi untuk Guru',
   description:
     'Kelola kelas, absensi, dan nilai dalam satu tempat. RPP Generator AI, rekap otomatis, ekspor PDF & Excel — gratis selama beta.',
+  openGraph: {
+    title: 'TeachFlow — Asisten Administrasi untuk Guru',
+    description:
+      'Kelola kelas, absensi, dan nilai dalam satu tempat. RPP Generator AI, rekap otomatis, ekspor PDF & Excel — gratis selama beta.',
+    type: 'website',
+    locale: 'id_ID',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'TeachFlow — Asisten Administrasi untuk Guru',
+    description:
+      'Kelola kelas, absensi, dan nilai dalam satu tempat. RPP Generator AI, rekap otomatis — gratis selama beta.',
+  },
 }
 
 export default function LandingLayout({
@@ -32,5 +46,17 @@ export default function LandingLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <div className={cn(fredoka.variable, caveat.variable)}>{children}</div>
+  return (
+    <div className={cn(fredoka.variable, caveat.variable)}>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: "document.documentElement.classList.add('js')",
+        }}
+      />
+      <a className="skip-link" href="#konten">
+        Lewati ke konten
+      </a>
+      {children}
+    </div>
+  )
 }

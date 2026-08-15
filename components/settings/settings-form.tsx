@@ -1,12 +1,12 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { updateProfile } from "@/lib/actions/user.actions"
+import { useState } from 'react'
+import { useSession } from 'next-auth/react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { updateProfile } from '@/lib/actions/user.actions'
 
 interface Props {
   initialName: string
@@ -14,24 +14,24 @@ interface Props {
 }
 
 export function SettingsForm({ initialName, email }: Props) {
-  const router = useRouter()
+  const { update } = useSession()
   const [name, setName] = useState(initialName)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    setError("")
+    setError('')
     setSuccess(false)
 
     try {
       await updateProfile({ name })
+      await update({ name })
       setSuccess(true)
-      router.refresh()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong")
+      setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setLoading(false)
     }
@@ -69,17 +69,10 @@ export function SettingsForm({ initialName, email }: Props) {
             </p>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
-          {success && (
-            <div className="space-y-1">
-              <p className="text-sm text-green-600">Profile updated</p>
-              <p className="text-xs text-muted-foreground">
-                Name change will reflect after your next login
-              </p>
-            </div>
-          )}
+          {success && <p className="text-sm text-green-600">Profile updated</p>}
           <div className="flex justify-end">
             <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
+              {loading ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </form>

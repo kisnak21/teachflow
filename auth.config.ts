@@ -10,11 +10,15 @@ export const authConfig: NextAuthConfig = {
     signIn: '/login',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
+        token.name = user.name
         token.role = (user as { role?: string }).role ?? 'teacher'
         token.classId = (user as { classId?: string }).classId
+      }
+      if (trigger === 'update' && session?.name) {
+        token.name = session.name as string
       }
       return token
     },

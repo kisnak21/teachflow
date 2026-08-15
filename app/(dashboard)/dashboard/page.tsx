@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BookOpen, Users, CalendarCheck, ClipboardList } from 'lucide-react'
 import { getSession } from '@/lib/auth-helpers'
 import { db } from '@/lib/db'
+import { OnboardingWizard } from '@/components/onboarding/onboarding-wizard'
 
 async function getDashboardStats(teacherId: string) {
   const today = new Date()
@@ -59,6 +60,10 @@ async function getDashboardStats(teacherId: string) {
 export default async function DashboardPage() {
   const session = await getSession()
   const stats = await getDashboardStats(session.id)
+
+  if (stats.totalClasses === 0) {
+    return <OnboardingWizard />
+  }
 
   const attendanceDisplay =
     stats.attendanceRate !== null ? `${stats.attendanceRate}%` : '—'

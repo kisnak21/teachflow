@@ -7,6 +7,7 @@ export const TEACHER_ROUTES = [
   '/students',
   '/attendance',
   '/assignments',
+  '/grades',
   '/lesson-plans',
   '/analytics',
   '/settings',

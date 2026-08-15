@@ -15,6 +15,7 @@ import {
   Menu,
   Sparkles,
   BarChart3,
+  Trophy,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -34,6 +35,7 @@ const navItems = [
   { href: '/students', label: 'Students', icon: Users },
   { href: '/attendance', label: 'Attendance', icon: CalendarCheck },
   { href: '/assignments', label: 'Assignments', icon: ClipboardList },
+  { href: '/grades', label: 'Grades', icon: Trophy },
   { href: '/lesson-plans', label: 'Lesson Plans', icon: FileText },
   { href: '/lesson-plans/generate', label: 'AI Generator', icon: Sparkles },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },

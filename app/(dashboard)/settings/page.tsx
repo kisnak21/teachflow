@@ -1,5 +1,6 @@
-import { auth } from "@/auth"
-import { SettingsForm } from "@/components/settings/settings-form"
+import { auth } from '@/auth'
+import { SettingsForm } from '@/components/settings/settings-form'
+import { ChangePasswordForm } from '@/components/settings/change-password-form'
 
 export default async function SettingsPage() {
   const session = await auth()
@@ -14,10 +15,8 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <SettingsForm
-        initialName={user?.name ?? ""}
-        email={user?.email ?? ""}
-      />
+      <SettingsForm initialName={user?.name ?? ''} email={user?.email ?? ''} />
+      <ChangePasswordForm />
     </div>
   )
 }

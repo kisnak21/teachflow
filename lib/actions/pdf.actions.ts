@@ -5,6 +5,7 @@ import { renderToBuffer } from '@react-pdf/renderer'
 import { AttendanceReportPDF } from '@/lib/pdf/attendance-report'
 import { ClassRosterPDF } from '@/lib/pdf/class-roster'
 import { GradebookReportPDF } from '@/lib/pdf/gradebook-report'
+import { LessonPlanPDF, type LessonPlanPdfData } from '@/lib/pdf/lesson-plan'
 import { requireTeacher } from '@/lib/auth-helpers'
 
 export async function generateAttendancePDF(classId: string, date: string) {
@@ -162,5 +163,41 @@ export async function generateGradebookPDF(classId: string) {
     }) as unknown as Parameters<typeof renderToBuffer>[0]
   )
 
+  return buffer.toString('base64')
+}
+
+export async function generateLessonPlanPdfFromData(data: LessonPlanPdfData) {
+  await requireTeacher()
+  const buffer = await renderToBuffer(
+    LessonPlanPDF(data) as unknown as Parameters<typeof renderToBuffer>[0]
+  )
+  return buffer.toString('base64')
+}
+
+export async function generateLessonPlanPdfById(planId: string) {
+  const teacherId = await requireTeacher()
+  const plan = await db.lessonPlan.findFirst({
+    where: { id: planId, teacherId },
+    include: { class: true },
+  })
+  if (!plan) throw new Error('Lesson plan not found')
+
+  const pdfData: LessonPlanPdfData = {
+    title: plan.title,
+    subject: plan.subject,
+    grade: plan.class.level ?? '-',
+    duration: '-',
+    objectives: (plan.objectives ?? '').split('\n').filter(Boolean),
+    activities: (plan.activities ?? '').split('\n').filter(Boolean),
+    assessment: (plan.assessment ?? '').split('\n').filter(Boolean),
+    homework: (plan.notes ?? '').split('\n').filter(Boolean),
+    materials: (plan.materials ?? '').split('\n').filter(Boolean),
+    methods: (plan.methods ?? '').split('\n').filter(Boolean),
+    differentiation: (plan.differentiation ?? '').split('\n').filter(Boolean),
+  }
+
+  const buffer = await renderToBuffer(
+    LessonPlanPDF(pdfData) as unknown as Parameters<typeof renderToBuffer>[0]
+  )
   return buffer.toString('base64')
 }

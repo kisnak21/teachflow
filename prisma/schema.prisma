@@ -102,19 +102,22 @@ model AssignmentClass {
 }
 
 model LessonPlan {
-  id          String       @id @default(cuid())
-  title       String
-  subject     String
-  objectives  String
-  activities  String
-  assessment  String?
-  notes       String?
-  classId     String
-  teacherId   String
-  createdAt   DateTime     @default(now())
-  class       Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
-  teacher     User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  attachments Attachment[]
+  id             String       @id @default(cuid())
+  title          String
+  subject        String
+  objectives     String
+  activities     String
+  assessment     String?
+  notes          String?
+  materials      String?
+  methods        String?
+  differentiation String?
+  classId        String
+  teacherId      String
+  createdAt      DateTime     @default(now())
+  class          Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher        User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  attachments    Attachment[]
 }
 
 model Attachment {

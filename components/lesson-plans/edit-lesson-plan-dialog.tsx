@@ -35,6 +35,9 @@ interface Props {
     activities: string
     assessment: string | null
     notes: string | null
+    materials: string | null
+    methods: string | null
+    differentiation: string | null
     classId: string
     attachments: { id: string; name: string; url: string }[]
   }
@@ -58,6 +61,9 @@ export function EditLessonPlanDialog({
     activities: plan.activities,
     assessment: plan.assessment ?? '',
     notes: plan.notes ?? '',
+    materials: plan.materials ?? '',
+    methods: plan.methods ?? '',
+    differentiation: plan.differentiation ?? '',
     classId: plan.classId,
   })
   const [attachments, setAttachments] = useState(plan.attachments)
@@ -159,6 +165,35 @@ export function EditLessonPlanDialog({
               id="edit-assessment"
               value={form.assessment}
               onChange={(e) => setForm({ ...form, assessment: e.target.value })}
+              rows={2}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-materials">Materials & Media</Label>
+            <Textarea
+              id="edit-materials"
+              value={form.materials}
+              onChange={(e) => setForm({ ...form, materials: e.target.value })}
+              rows={2}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-methods">Methods</Label>
+            <Textarea
+              id="edit-methods"
+              value={form.methods}
+              onChange={(e) => setForm({ ...form, methods: e.target.value })}
+              rows={2}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-differentiation">Differentiation</Label>
+            <Textarea
+              id="edit-differentiation"
+              value={form.differentiation}
+              onChange={(e) =>
+                setForm({ ...form, differentiation: e.target.value })
+              }
               rows={2}
             />
           </div>

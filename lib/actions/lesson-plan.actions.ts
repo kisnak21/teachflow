@@ -1,9 +1,9 @@
-"use server"
+'use server'
 
-import { db } from "@/lib/db"
-import { requireTeacher } from "@/lib/auth-helpers"
-import { revalidatePath } from "next/cache"
-import { lessonPlanSchema } from "@/lib/validations"
+import { db } from '@/lib/db'
+import { requireTeacher } from '@/lib/auth-helpers'
+import { revalidatePath } from 'next/cache'
+import { lessonPlanSchema } from '@/lib/validations'
 
 export async function getLessonPlans() {
   const teacherId = await requireTeacher()
@@ -11,7 +11,7 @@ export async function getLessonPlans() {
   return db.lessonPlan.findMany({
     where: { teacherId: teacherId },
     include: { class: true, attachments: true },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
   })
 }
 
@@ -22,6 +22,9 @@ export async function createLessonPlan(data: {
   activities: string
   assessment: string
   notes: string
+  materials?: string
+  methods?: string
+  differentiation?: string
   classId: string
 }) {
   const teacherId = await requireTeacher()
@@ -35,22 +38,25 @@ export async function createLessonPlan(data: {
     where: { id: parsed.data.classId, teacherId },
     select: { id: true },
   })
-  if (!cls) throw new Error("Class not found")
+  if (!cls) throw new Error('Class not found')
 
   await db.lessonPlan.create({
     data: {
       title: parsed.data.title,
       subject: parsed.data.subject,
-      objectives: parsed.data.objectives ?? "",
-      activities: parsed.data.activities ?? "",
-      assessment: parsed.data.assessment ?? "",
-      notes: parsed.data.notes ?? "",
+      objectives: parsed.data.objectives ?? '',
+      activities: parsed.data.activities ?? '',
+      assessment: parsed.data.assessment ?? '',
+      notes: parsed.data.notes ?? '',
+      materials: parsed.data.materials ?? '',
+      methods: parsed.data.methods ?? '',
+      differentiation: parsed.data.differentiation ?? '',
       classId: parsed.data.classId,
       teacherId: teacherId,
     },
   })
 
-  revalidatePath("/lesson-plans")
+  revalidatePath('/lesson-plans')
 }
 
 export async function updateLessonPlan(
@@ -62,6 +68,9 @@ export async function updateLessonPlan(
     activities: string
     assessment: string
     notes: string
+    materials?: string
+    methods?: string
+    differentiation?: string
     classId: string
   }
 ) {
@@ -76,28 +85,31 @@ export async function updateLessonPlan(
     where: { id, teacherId },
     select: { id: true },
   })
-  if (!lessonPlan) throw new Error("Lesson plan not found")
+  if (!lessonPlan) throw new Error('Lesson plan not found')
 
   const cls = await db.class.findFirst({
     where: { id: parsed.data.classId, teacherId },
     select: { id: true },
   })
-  if (!cls) throw new Error("Class not found")
+  if (!cls) throw new Error('Class not found')
 
   await db.lessonPlan.update({
     where: { id },
     data: {
       title: parsed.data.title,
       subject: parsed.data.subject,
-      objectives: parsed.data.objectives ?? "",
-      activities: parsed.data.activities ?? "",
-      assessment: parsed.data.assessment ?? "",
-      notes: parsed.data.notes ?? "",
+      objectives: parsed.data.objectives ?? '',
+      activities: parsed.data.activities ?? '',
+      assessment: parsed.data.assessment ?? '',
+      notes: parsed.data.notes ?? '',
+      materials: parsed.data.materials ?? '',
+      methods: parsed.data.methods ?? '',
+      differentiation: parsed.data.differentiation ?? '',
       classId: parsed.data.classId,
     },
   })
 
-  revalidatePath("/lesson-plans")
+  revalidatePath('/lesson-plans')
 }
 
 export async function deleteLessonPlan(id: string) {
@@ -107,11 +119,11 @@ export async function deleteLessonPlan(id: string) {
     where: { id, teacherId },
     select: { id: true },
   })
-  if (!lessonPlan) throw new Error("Lesson plan not found")
+  if (!lessonPlan) throw new Error('Lesson plan not found')
 
   await db.lessonPlan.delete({
     where: { id },
   })
 
-  revalidatePath("/lesson-plans")
+  revalidatePath('/lesson-plans')
 }

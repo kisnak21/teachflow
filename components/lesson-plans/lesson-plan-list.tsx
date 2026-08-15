@@ -16,6 +16,9 @@ interface LessonPlan {
   activities: string
   assessment: string | null
   notes: string | null
+  materials: string | null
+  methods: string | null
+  differentiation: string | null
   classId: string
   class: { id: string; name: string }
   attachments: { id: string; name: string; url: string }[]
@@ -111,6 +114,36 @@ export function LessonPlanList({ lessonPlans, classes }: Props) {
                       Assessment
                     </p>
                     <p className="text-sm">{plan.assessment}</p>
+                  </div>
+                )}
+                {plan.materials && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                      Materials & Media
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {plan.materials}
+                    </p>
+                  </div>
+                )}
+                {plan.methods && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                      Methods
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {plan.methods}
+                    </p>
+                  </div>
+                )}
+                {plan.differentiation && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                      Differentiation
+                    </p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {plan.differentiation}
+                    </p>
                   </div>
                 )}
                 {plan.notes && (

@@ -1,58 +1,61 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Plus } from "lucide-react"
-import { createLessonPlan } from "@/lib/actions/lesson-plan.actions"
+} from '@/components/ui/select'
+import { Plus } from 'lucide-react'
+import { createLessonPlan } from '@/lib/actions/lesson-plan.actions'
 
 interface Props {
   classes: { id: string; name: string }[]
 }
 
 const emptyForm = {
-  title: "",
-  subject: "",
-  objectives: "",
-  activities: "",
-  assessment: "",
-  notes: "",
-  classId: "",
+  title: '',
+  subject: '',
+  objectives: '',
+  activities: '',
+  assessment: '',
+  notes: '',
+  materials: '',
+  methods: '',
+  differentiation: '',
+  classId: '',
 }
 
 export function CreateLessonPlanDialog({ classes }: Props) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [error, setError] = useState('')
   const [form, setForm] = useState(emptyForm)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    setError("")
+    setError('')
 
     try {
       await createLessonPlan(form)
       setForm(emptyForm)
       setOpen(false)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong")
+      setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setLoading(false)
     }
@@ -143,6 +146,38 @@ export function CreateLessonPlanDialog({ classes }: Props) {
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="materials">Materials & Media</Label>
+            <Textarea
+              id="materials"
+              placeholder="Materials, media, tools..."
+              value={form.materials}
+              onChange={(e) => setForm({ ...form, materials: e.target.value })}
+              rows={2}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="methods">Methods</Label>
+            <Textarea
+              id="methods"
+              placeholder="Teaching methods..."
+              value={form.methods}
+              onChange={(e) => setForm({ ...form, methods: e.target.value })}
+              rows={2}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="differentiation">Differentiation</Label>
+            <Textarea
+              id="differentiation"
+              placeholder="Differentiation strategies..."
+              value={form.differentiation}
+              onChange={(e) =>
+                setForm({ ...form, differentiation: e.target.value })
+              }
+              rows={2}
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
@@ -162,7 +197,7 @@ export function CreateLessonPlanDialog({ classes }: Props) {
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create"}
+              {loading ? 'Creating...' : 'Create'}
             </Button>
           </div>
         </form>

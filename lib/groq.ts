@@ -1,5 +1,7 @@
 import Groq from 'groq-sdk'
 
+// Deprecated shim — prefer lib/ai/providers.ts for multi-provider support.
+// Kept for backwards compatibility; new code should use getEnabledModels()/streamForModel.
 let client: Groq | null = null
 
 export function getGroq(): Groq {

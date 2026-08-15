@@ -25,6 +25,9 @@ export const lessonPlanSchema = z.object({
   activities: z.string().max(2000).optional(),
   assessment: z.string().max(2000).optional(),
   notes: z.string().max(2000).optional(),
+  materials: z.string().max(2000).optional(),
+  methods: z.string().max(2000).optional(),
+  differentiation: z.string().max(2000).optional(),
   classId: z.string().min(1, 'Class is required'),
 })
 

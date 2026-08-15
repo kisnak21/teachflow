@@ -22,7 +22,7 @@ const caveat = localFont({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://teachflow.id'),
+  metadataBase: new URL('https://teachflow-eight.vercel.app'),
   title: 'TeachFlow — Asisten Administrasi untuk Guru',
   description:
     'Kelola kelas, absensi, dan nilai dalam satu tempat. RPP Generator AI, rekap otomatis, ekspor PDF & Excel — gratis selama beta.',

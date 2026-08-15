@@ -53,8 +53,22 @@ export function Footer() {
             </a>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 border-t border-border pt-5 text-[0.8rem] text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5 text-[0.8rem] text-muted-foreground">
           <span>© 2026 TeachFlow. Dibuat oleh guru, untuk guru.</span>
+          <div className="flex gap-5">
+            <Link
+              href="/privacy"
+              className="no-underline hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              Kebijakan Privasi
+            </Link>
+            <Link
+              href="/terms"
+              className="no-underline hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              Ketentuan Layanan
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
